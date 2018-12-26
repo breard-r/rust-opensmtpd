@@ -1,0 +1,7 @@
+[package]
+name = "opensmtpd"
+version = "0.1.0"
+authors = ["Rodolphe Breard <rodolphe@what.tf>"]
+edition = "2018"
+
+[dependencies]
