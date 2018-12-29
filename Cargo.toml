@@ -12,4 +12,12 @@ license = "CECILL-B"
 include = ["src/**/*", "Cargo.toml", "Licence_*.txt"]
 
 [dependencies]
-nom = "^4.1"
+log = "0.4"
+nom = "4.1"
+
+[[example]]
+name = "dummy"
+path = "examples/dummy.rs"
+
+[dev-dependencies]
+env_logger = "0.6"

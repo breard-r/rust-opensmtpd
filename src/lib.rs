@@ -3,6 +3,7 @@ mod errors;
 
 use crate::entry::Entry;
 use crate::errors::Error;
+use log::{debug, error, warn};
 use std::collections::HashMap;
 use std::io;
 use std::sync::mpsc;
@@ -32,13 +33,12 @@ fn dispatch(
             let (tx, rx) = mpsc::channel();
             let name = entry.session_id.to_string();
             let handle = thread::Builder::new().name(name).spawn(move || {
-                println!("New thread: {}", thread::current().name().unwrap());
+                debug!(
+                    "New thread for session {}",
+                    thread::current().name().unwrap()
+                );
                 for e in rx.iter() {
-                    println!(
-                        "Debug: thread {}: {:?}",
-                        thread::current().name().unwrap(),
-                        e
-                    );
+                    debug!("thread {}: {:?}", thread::current().name().unwrap(), e);
                 }
             })?;
             sessions.insert(entry.session_id, (tx, handle));
@@ -74,13 +74,13 @@ pub fn run() {
             Ok(l) => l,
             Err(e) => {
                 graceful_exit_children(&mut sessions);
-                e.display();
+                error!("{}", e);
                 std::process::exit(1);
             }
         };
         match dispatch(&mut sessions, &line) {
             Ok(_) => {}
-            Err(e) => e.display(),
+            Err(e) => warn!("{}", e),
         }
     }
 }

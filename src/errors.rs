@@ -1,4 +1,5 @@
 use crate::entry::Entry;
+use std::fmt;
 
 pub struct Error {
     message: String,
@@ -10,9 +11,11 @@ impl Error {
             message: msg.to_string(),
         }
     }
+}
 
-    pub fn display(&self) {
-        eprintln!("Error: {}", self.message);
+impl fmt::Display for Error {
+    fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
+        write!(f, "{}", self.message)
     }
 }
 
