@@ -5,3 +5,4 @@ authors = ["Rodolphe Breard <rodolphe@what.tf>"]
 edition = "2018"
 
 [dependencies]
+nom = "^4.1"
