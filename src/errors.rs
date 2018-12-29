@@ -11,10 +11,6 @@ impl Error {
         }
     }
 
-    pub fn from_string(msg: &String) -> Self {
-        Error::new(&msg)
-    }
-
     pub fn display(&self) {
         eprintln!("Error: {}", self.message);
     }
@@ -22,7 +18,7 @@ impl Error {
 
 impl From<std::io::Error> for Error {
     fn from(error: std::io::Error) -> Self {
-        Error::from_string(&format!("IO error: {}", error))
+        Error::new(&format!("IO error: {}", error))
     }
 }
 
@@ -33,12 +29,12 @@ impl From<nom::Err<&str>> for Error {
             nom::Err::Error(c) => format!("{:?}", c),
             nom::Err::Failure(c) => format!("{:?}", c),
         };
-        Error::from_string(&format!("Parsing error: {}", msg))
+        Error::new(&format!("Parsing error: {}", msg))
     }
 }
 
 impl From<std::sync::mpsc::SendError<Entry>> for Error {
     fn from(error: std::sync::mpsc::SendError<Entry>) -> Self {
-        Error::from_string(&format!("IO error: {}", error))
+        Error::new(&format!("IO error: {}", error))
     }
 }
