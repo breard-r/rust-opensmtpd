@@ -1,5 +1,8 @@
 use crate::errors::Error;
-use nom::{alt, call, cond, do_parse, error_position, map_res, named, tag, take_until, take_while};
+use nom::{
+    alt, alt_complete, call, complete, cond, do_parse, error_position, map_res, named, tag,
+    take_until, take_while,
+};
 
 #[derive(Debug, PartialEq)]
 pub enum Kind {
@@ -10,12 +13,25 @@ pub enum Kind {
 #[derive(Debug)]
 pub enum Subsystem {
     SmtpIn,
+    SmtpOut,
 }
 
 #[derive(Debug)]
 pub enum Event {
+    LinkConnect,
+    LinkDisconnect,
+    LinkIdentify,
+    LinkTls,
+    TxBegin,
     TxMail,
     TxRcpt,
+    TxEnvelope,
+    TxData,
+    TxCommit,
+    TxRollback,
+    ProtocolClient,
+    ProtocolServer,
+    FilterResponse,
 }
 
 #[derive(Debug)]
@@ -51,22 +67,35 @@ fn to_u64_hex(s: &str) -> Result<u64, std::num::ParseIntError> {
 }
 
 named!(parse_kind<&str, Kind>,
-    alt!(
+    alt_complete!(
         tag!("report") => { |_| Kind::Report } |
         tag!("filter") => { |_| Kind::Filter }
     )
 );
 
 named!(parse_subsystem<&str, Subsystem>,
-    alt! (
-        tag!("smtp-in") => { |_| Subsystem::SmtpIn }
+    alt_complete! (
+        tag!("smtp-in") => { |_| Subsystem::SmtpIn } |
+        tag!("smtp-out") => { |_| Subsystem::SmtpOut }
     )
 );
 
 named!(parse_event<&str, Event>,
-    alt!(
+    alt_complete!(
+        tag!("link-connect") => { |_| Event::LinkConnect } |
+        tag!("link-disconnect") => { |_| Event::LinkDisconnect } |
+        tag!("link-identify") => { |_| Event::LinkIdentify } |
+        tag!("link-tls") => { |_| Event::LinkTls } |
+        tag!("tx-begin") => { |_| Event::TxBegin } |
         tag!("tx-mail") => { |_| Event::TxMail } |
-        tag!("tx-rcpt") => { |_| Event::TxRcpt }
+        tag!("tx-rcpt") => { |_| Event::TxRcpt } |
+        tag!("tx-envelope") => { |_| Event::TxEnvelope } |
+        tag!("tx-data") => { |_| Event::TxData } |
+        tag!("tx-commit") => { |_| Event::TxCommit } |
+        tag!("tx-rollback") => { |_| Event::TxRollback } |
+        tag!("protocol-client") => { |_| Event::ProtocolClient } |
+        tag!("protocol-server") => { |_| Event::ProtocolServer } |
+        tag!("filter-response") => { |_| Event::FilterResponse }
     )
 );
 
