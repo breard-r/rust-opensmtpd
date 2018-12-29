@@ -15,12 +15,8 @@ impl Error {
         Error::new(&msg)
     }
 
-    pub fn new_param(param: &str, msg: &str) -> Self {
-        Error::new(&format!("{}: {}", param, msg))
-    }
-
-    pub fn as_str(&self) -> &str {
-        &self.message
+    pub fn display(&self) {
+        eprintln!("Error: {}", self.message);
     }
 }
 
