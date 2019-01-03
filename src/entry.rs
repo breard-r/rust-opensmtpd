@@ -1,8 +1,6 @@
 use crate::errors::Error;
-use nom::{
-    alt, alt_complete, call, complete, cond, do_parse, error_position, map_res, named, tag,
-    take_until, take_while,
-};
+use nom::{alt, alt_complete, call, complete, cond, do_parse, error_position, map_res, named, tag,
+          take_until, take_while};
 
 #[derive(Debug, PartialEq)]
 pub enum Kind {
