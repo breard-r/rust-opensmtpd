@@ -1,4 +1,10 @@
-report|1|1544130229|smtp-in|tx-mail|4b0148c60f798628|fc08ce7d|<owner-hackers+M85937=gilles=poolp.org@openbsd.org>|ok
-report|1|1544130229|smtp-in|tx-mail|0f3004c08c82d33e|fc08ce7d|<owner-hackers+M85937=gilles=poolp.org@openbsd.org>|ok
-report|1|1544130229|smtp-in|tx-rcpt|4b0148c60f798628|fc08ce7d|<gilles@poolp.org>|ok
-report|1|1544130229|smtp-in|tx-rcpt|0f3004c08c82d33e|fc08ce7d|<gilles@poolp.org>|ok
+report|1|1546681202.276920|smtp-in|link-connect|dbd829906c50e764|localhost|pass|127.0.0.1:34818|127.0.0.1:25
+report|1|1546681202.277715|smtp-in|filter-response|dbd829906c50e764|connected|proceed
+report|1|1546681202.276920|smtp-in|link-connect|4b0148c60f798628|localhost|pass|127.0.0.1:34818|127.0.0.1:25
+report|1|1546681202.277715|smtp-in|filter-response|4b0148c60f798628|connected|proceed
+report|1|1546681202.277761|smtp-in|protocol-server|dbd829906c50e764|220 laptop.home ESMTP OpenSMTPD
+report|1|1546681232.283049|smtp-in|timeout|dbd829906c50e764
+report|1|1546681202.277761|smtp-in|protocol-server|4b0148c60f798628|220 laptop.home ESMTP OpenSMTPD
+report|1|1546681232.283049|smtp-in|timeout|4b0148c60f798628
+report|1|1546681232.283083|smtp-in|link-disconnect|dbd829906c50e764
+report|1|1546681232.283083|smtp-in|link-disconnect|4b0148c60f798628

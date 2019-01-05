@@ -1,20 +1,20 @@
 use crate::errors::Error;
-use nom::{alt, alt_complete, call, complete, cond, do_parse, error_position, map_res, named, tag,
-          take_until, take_while};
+use nom::{alt, alt_complete, call, complete, cond, do_parse, error_position, map_res, named, opt,
+          tag, take_until, take_while};
 
-#[derive(Debug, PartialEq)]
+#[derive(Clone, Debug, PartialEq)]
 pub enum Kind {
     Report,
     Filter,
 }
 
-#[derive(Debug)]
+#[derive(Clone, Debug, PartialEq)]
 pub enum Subsystem {
     SmtpIn,
     SmtpOut,
 }
 
-#[derive(Debug)]
+#[derive(Clone, Debug, PartialEq)]
 pub enum Event {
     LinkConnect,
     LinkDisconnect,
@@ -29,6 +29,7 @@ pub enum Event {
     TxRollback,
     ProtocolClient,
     ProtocolServer,
+    Timeout,
     FilterResponse,
 }
 
@@ -41,7 +42,7 @@ pub struct Entry {
     pub event: Event,
     pub token: Option<u64>,
     pub session_id: u64,
-    pub params: String,
+    pub params: Option<String>,
 }
 
 fn is_ascii_digit(c: char) -> bool {
@@ -53,6 +54,10 @@ fn is_ascii_hexdigit(c: char) -> bool {
 }
 
 fn to_u8(s: &str) -> Result<u8, std::num::ParseIntError> {
+    s.parse()
+}
+
+fn to_i32(s: &str) -> Result<i32, std::num::ParseIntError> {
     s.parse()
 }
 
@@ -93,12 +98,26 @@ named!(parse_event<&str, Event>,
         tag!("tx-rollback") => { |_| Event::TxRollback } |
         tag!("protocol-client") => { |_| Event::ProtocolClient } |
         tag!("protocol-server") => { |_| Event::ProtocolServer } |
+        tag!("timeout") => { |_| Event::Timeout } |
         tag!("filter-response") => { |_| Event::FilterResponse }
+    )
+);
+
+named!(parse_timestamp<&str, u64>,
+    do_parse!(
+        sec: parse_u64 >>
+        tag!(".") >>
+        nsec: parse_i32 >>
+        (sec)
     )
 );
 
 named!(parse_version<&str, u8>,
     map_res!(take_while!(is_ascii_digit), to_u8)
+);
+
+named!(parse_i32<&str, i32>,
+    map_res!(take_while!(is_ascii_digit), to_i32)
 );
 
 named!(parse_u64<&str, u64>,
@@ -117,6 +136,14 @@ named!(parse_token<&str, u64>,
     )
 );
 
+named!(parse_params<&str, String>,
+    do_parse!(
+        tag!("|") >>
+        s: take_until!("\n") >>
+        (s.to_string())
+    )
+);
+
 named!(
     parse_entry<&str, Entry>,
     do_parse!(
@@ -124,7 +151,7 @@ named!(
         tag!("|") >>
         version: parse_version >>
         tag!("|") >>
-        timestamp: parse_u64 >>
+        timestamp: parse_timestamp >>
         tag!("|") >>
         subsystem: parse_subsystem >>
         tag!("|") >>
@@ -132,8 +159,7 @@ named!(
         tag!("|") >>
         token: cond!(kind == Kind::Filter, parse_token) >>
         session_id: parse_u64_hex >>
-        tag!("|") >>
-        params: take_until!("\n") >>
+        params: opt!(parse_params) >>
         (Entry {
             kind,
             version,
@@ -142,7 +168,7 @@ named!(
             event,
             token,
             session_id,
-            params: params.to_string(),
+            params: params,
         })
     )
 );
