@@ -57,8 +57,19 @@ pub struct Entry {
     pub params: Option<String>,
 }
 
+impl Entry {
+    pub fn from_str(entry: &str) -> Result<Entry, Error> {
+        let (_, res) = parse_entry(entry)?;
+        Ok(res)
+    }
+}
+
 fn is_ascii_digit(c: char) -> bool {
     c.is_ascii_digit()
+}
+
+fn is_ascii_digit_or_neg(c: char) -> bool {
+    c.is_ascii_digit() || c == '-'
 }
 
 fn is_ascii_hexdigit(c: char) -> bool {
@@ -77,10 +88,31 @@ fn to_u64_hex(s: &str) -> Result<u64, std::num::ParseIntError> {
     u64::from_str_radix(s, 16)
 }
 
+named!(parse_i64<&str, i64>,
+    map_res!(take_while!(is_ascii_digit_or_neg), to_i64)
+);
+
+named!(parse_u64_hex<&str, u64>,
+    map_res!(take_while!(is_ascii_hexdigit), to_u64_hex)
+);
+
 named!(parse_kind<&str, Kind>,
     alt_complete!(
         tag!("report") => { |_| Kind::Report } |
         tag!("filter") => { |_| Kind::Filter }
+    )
+);
+
+named!(parse_version<&str, u8>,
+    map_res!(take_while!(is_ascii_digit), to_u8)
+);
+
+named!(parse_timestamp<&str, TimeVal>,
+    do_parse!(
+        sec: parse_i64 >>
+        tag!(".") >>
+        usec: parse_i64 >>
+        (TimeVal { sec, usec})
     )
 );
 
@@ -109,27 +141,6 @@ named!(parse_event<&str, Event>,
         tag!("timeout") => { |_| Event::Timeout } |
         tag!("filter-response") => { |_| Event::FilterResponse }
     )
-);
-
-named!(parse_timestamp<&str, TimeVal>,
-    do_parse!(
-        sec: parse_i64 >>
-        tag!(".") >>
-        usec: parse_i64 >>
-        (TimeVal { sec, usec})
-    )
-);
-
-named!(parse_version<&str, u8>,
-    map_res!(take_while!(is_ascii_digit), to_u8)
-);
-
-named!(parse_i64<&str, i64>,
-    map_res!(take_while!(is_ascii_digit), to_i64)
-);
-
-named!(parse_u64_hex<&str, u64>,
-    map_res!(take_while!(is_ascii_hexdigit), to_u64_hex)
 );
 
 named!(parse_token<&str, u64>,
@@ -172,14 +183,7 @@ named!(
             event,
             token,
             session_id,
-            params: params,
+            params,
         })
     )
 );
-
-impl Entry {
-    pub fn from_str(entry: &str) -> Result<Entry, Error> {
-        let (_, res) = parse_entry(entry)?;
-        Ok(res)
-    }
-}
