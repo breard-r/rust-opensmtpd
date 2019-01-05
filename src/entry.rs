@@ -34,10 +34,22 @@ pub enum Event {
 }
 
 #[derive(Debug)]
+pub struct TimeVal {
+    pub sec: i64,
+    pub usec: i64,
+}
+
+impl TimeVal {
+    pub fn to_string(&self) -> String {
+        format!("{}.{}", self.sec, self.usec)
+    }
+}
+
+#[derive(Debug)]
 pub struct Entry {
     pub kind: Kind,
     pub version: u8,
-    pub timestamp: u64,
+    pub timestamp: TimeVal,
     pub subsystem: Subsystem,
     pub event: Event,
     pub token: Option<u64>,
@@ -57,11 +69,7 @@ fn to_u8(s: &str) -> Result<u8, std::num::ParseIntError> {
     s.parse()
 }
 
-fn to_i32(s: &str) -> Result<i32, std::num::ParseIntError> {
-    s.parse()
-}
-
-fn to_u64(s: &str) -> Result<u64, std::num::ParseIntError> {
+fn to_i64(s: &str) -> Result<i64, std::num::ParseIntError> {
     s.parse()
 }
 
@@ -103,12 +111,12 @@ named!(parse_event<&str, Event>,
     )
 );
 
-named!(parse_timestamp<&str, u64>,
+named!(parse_timestamp<&str, TimeVal>,
     do_parse!(
-        sec: parse_u64 >>
+        sec: parse_i64 >>
         tag!(".") >>
-        nsec: parse_i32 >>
-        (sec)
+        usec: parse_i64 >>
+        (TimeVal { sec, usec})
     )
 );
 
@@ -116,12 +124,8 @@ named!(parse_version<&str, u8>,
     map_res!(take_while!(is_ascii_digit), to_u8)
 );
 
-named!(parse_i32<&str, i32>,
-    map_res!(take_while!(is_ascii_digit), to_i32)
-);
-
-named!(parse_u64<&str, u64>,
-    map_res!(take_while!(is_ascii_digit), to_u64)
+named!(parse_i64<&str, i64>,
+    map_res!(take_while!(is_ascii_digit), to_i64)
 );
 
 named!(parse_u64_hex<&str, u64>,
