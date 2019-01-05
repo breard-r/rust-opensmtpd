@@ -12,6 +12,19 @@ pub use crate::entry::{Entry, Event};
 pub use crate::errors::Error;
 pub use crate::event_handlers::{EventHandler, MatchEvent};
 
+#[macro_export]
+macro_rules! handlers {
+    ( $( $x:expr ),* ) => {
+        {
+            let mut temp_vec = Vec::new();
+            $(
+                temp_vec.push(($x)());
+            )*
+            temp_vec
+        }
+    };
+}
+
 struct SessionHandler {
     entry_rx: mpsc::Receiver<Entry>,
     event_handlers: Vec<EventHandler>,
@@ -19,7 +32,10 @@ struct SessionHandler {
 
 impl SessionHandler {
     fn new(entry_rx: mpsc::Receiver<Entry>, handlers_rx: mpsc::Receiver<EventHandler>) -> Self {
-        debug!("New thread for session {}", thread::current().name().unwrap());
+        debug!(
+            "New thread for session {}",
+            thread::current().name().unwrap()
+        );
         let mut event_handlers = Vec::new();
         for h in handlers_rx.iter() {
             debug!("Event handler registered");
