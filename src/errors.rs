@@ -1,4 +1,5 @@
 use crate::entry::Entry;
+use crate::event_handlers::EventHandler;
 use std::fmt;
 
 pub struct Error {
@@ -38,6 +39,12 @@ impl From<nom::Err<&str>> for Error {
 
 impl From<std::sync::mpsc::SendError<Entry>> for Error {
     fn from(error: std::sync::mpsc::SendError<Entry>) -> Self {
+        Error::new(&format!("IO error: {}", error))
+    }
+}
+
+impl From<std::sync::mpsc::SendError<EventHandler>> for Error {
+    fn from(error: std::sync::mpsc::SendError<EventHandler>) -> Self {
         Error::new(&format!("IO error: {}", error))
     }
 }

@@ -1,16 +1,50 @@
 mod entry;
 mod errors;
+mod event_handlers;
 
-use crate::entry::Entry;
-use crate::errors::Error;
 use log::{debug, error, warn};
 use std::collections::HashMap;
 use std::io;
 use std::sync::mpsc;
 use std::thread;
 
+pub use crate::entry::{Entry, Event};
+pub use crate::errors::Error;
+pub use crate::event_handlers::{EventHandler, MatchEvent};
+
+struct SessionHandler {
+    entry_rx: mpsc::Receiver<Entry>,
+    event_handlers: Vec<EventHandler>,
+}
+
+impl SessionHandler {
+    fn new(entry_rx: mpsc::Receiver<Entry>, handlers_rx: mpsc::Receiver<EventHandler>) -> Self {
+        debug!("New thread for session {}", thread::current().name().unwrap());
+        let mut event_handlers = Vec::new();
+        for h in handlers_rx.iter() {
+            debug!("Event handler registered");
+            event_handlers.push(h);
+        }
+        SessionHandler {
+            entry_rx,
+            event_handlers,
+        }
+    }
+
+    fn read_entries(&self) {
+        for e in self.entry_rx.iter() {
+            for h in self.event_handlers.iter() {
+                if h.is_callable(e.event.clone()) {
+                    h.call(&e);
+                }
+            }
+        }
+    }
+}
+
 pub struct SmtpIn {
     sessions: HashMap<u64, (mpsc::Sender<Entry>, thread::JoinHandle<()>)>,
+    event_handlers: Vec<EventHandler>,
 }
 
 impl SmtpIn {
@@ -32,18 +66,16 @@ impl SmtpIn {
         let channel = match self.sessions.get(&entry.session_id) {
             Some((r, _)) => r,
             None => {
-                let (tx, rx) = mpsc::channel();
+                let (handlers_tx, handlers_rx) = mpsc::channel();
+                let (entry_tx, entry_rx) = mpsc::channel();
                 let name = entry.session_id.to_string();
                 let handle = thread::Builder::new().name(name).spawn(move || {
-                    debug!(
-                        "New thread for session {}",
-                        thread::current().name().unwrap()
-                    );
-                    for e in rx.iter() {
-                        debug!("thread {}: {:?}", thread::current().name().unwrap(), e);
-                    }
+                    SessionHandler::new(entry_rx, handlers_rx).read_entries();
                 })?;
-                self.sessions.insert(entry.session_id, (tx, handle));
+                for h in self.event_handlers.iter() {
+                    handlers_tx.send(h.clone())?;
+                }
+                self.sessions.insert(entry.session_id, (entry_tx, handle));
                 let (r, _) = self.sessions.get(&entry.session_id).unwrap();
                 r
             }
@@ -69,7 +101,13 @@ impl SmtpIn {
     pub fn new() -> Self {
         SmtpIn {
             sessions: HashMap::new(),
+            event_handlers: Vec::new(),
         }
+    }
+
+    pub fn event_handlers(&mut self, handlers: Vec<EventHandler>) -> &mut Self {
+        self.event_handlers = handlers.clone();
+        self
     }
 
     /// Run the infinite loop that will read and process input from stdin.
