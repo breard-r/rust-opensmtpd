@@ -79,7 +79,9 @@ impl SmtpIn {
     /// already exists, creates it.
     fn dispatch(&mut self, input: &str) -> Result<(), Error> {
         let entry = Entry::from_str(input)?;
-        let channel = match self.sessions.get(&entry.session_id) {
+        let id = entry.session_id;
+        let disconnect = entry.event == Event::LinkDisconnect;
+        let channel = match self.sessions.get(&id) {
             Some((r, _)) => r,
             None => {
                 let (handlers_tx, handlers_rx) = mpsc::channel();
@@ -97,6 +99,9 @@ impl SmtpIn {
             }
         };
         channel.send(entry)?;
+        if disconnect {
+            let _ = self.sessions.remove(&id);
+        }
         Ok(())
     }
 
