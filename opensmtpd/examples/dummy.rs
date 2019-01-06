@@ -1,17 +1,17 @@
 use env_logger::{Builder, Env};
 use log::{debug, info};
-use opensmtpd::{event, handlers, Entry, SmtpIn};
+use opensmtpd::{event, handlers, Entry, Response, SmtpIn};
 
 #[event(Any)]
-fn on_event(entry: &Entry) -> bool {
+fn on_event(entry: &Entry) -> Response {
     debug!("Event received: {:?}", entry);
-    true
+    Response::None
 }
 
 #[event(LinkConnect)]
-fn on_connect(entry: &Entry) -> bool {
+fn on_connect(entry: &Entry) -> Response {
     info!("New client on session {:x}.", entry.session_id);
-    true
+    Response::None
 }
 
 fn main() {

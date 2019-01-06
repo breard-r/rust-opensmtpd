@@ -26,6 +26,10 @@ macro_rules! handlers {
     };
 }
 
+pub enum Response {
+    None,
+}
+
 struct SessionHandler {
     entry_rx: mpsc::Receiver<Entry>,
     event_handlers: Vec<EventHandler>,

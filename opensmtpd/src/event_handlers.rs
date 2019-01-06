@@ -1,4 +1,5 @@
 use crate::entry::{Entry, Event};
+use crate::Response;
 
 #[derive(Clone, Debug, PartialEq)]
 pub enum MatchEvent {
@@ -9,7 +10,7 @@ pub enum MatchEvent {
 #[derive(Clone)]
 pub struct EventHandler {
     event: MatchEvent,
-    callback: (fn(&Entry) -> bool),
+    callback: (fn(&Entry) -> Response),
 }
 
 impl EventHandler {
@@ -31,7 +32,7 @@ impl EventHandler {
         MatchEvent::Evt(events)
     }
 
-    pub fn new(event_str: String, callback: (fn(&Entry) -> bool)) -> Self {
+    pub fn new(event_str: String, callback: (fn(&Entry) -> Response)) -> Self {
         EventHandler {
             event: EventHandler::get_events_from_string(&event_str),
             callback,
@@ -45,7 +46,9 @@ impl EventHandler {
         }
     }
 
-    pub fn call(&self, entry: &Entry) -> bool {
-        (self.callback)(entry)
+    pub fn call(&self, entry: &Entry) {
+        match (self.callback)(entry) {
+            Response::None => {}
+        };
     }
 }
