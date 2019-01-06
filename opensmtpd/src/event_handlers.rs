@@ -15,32 +15,29 @@ pub struct EventHandler {
 }
 
 impl EventHandler {
-    fn get_events_from_string(event_str: &String) -> MatchEvent {
+    fn get_events_from_string(event_str: &str) -> MatchEvent {
         let mut events = Vec::new();
         for name in event_str.split(" , ") {
             match name {
                 "Any" | "All" => {
                     return MatchEvent::All;
                 }
-                _ => match Event::from_str(name) {
-                    Ok(e) => {
-                        events.push(e);
-                    }
-                    Err(_) => {}
+                _ => if let Ok(e) = Event::from_str(name) {
+                    events.push(e);
                 },
             }
         }
         MatchEvent::Evt(events)
     }
 
-    pub fn new(event_str: String, callback: (fn(&Entry) -> Response)) -> Self {
+    pub fn new(event_str: &str, callback: (fn(&Entry) -> Response)) -> Self {
         EventHandler {
-            event: EventHandler::get_events_from_string(&event_str),
+            event: EventHandler::get_events_from_string(event_str),
             callback,
         }
     }
 
-    pub fn is_callable(&self, event: Event) -> bool {
+    pub fn is_callable(&self, event: &Event) -> bool {
         match &self.event {
             MatchEvent::All => true,
             MatchEvent::Evt(v) => v.contains(&event),

@@ -37,7 +37,7 @@ struct SessionHandler {
 }
 
 impl SessionHandler {
-    fn new(entry_rx: mpsc::Receiver<Entry>, handlers_rx: mpsc::Receiver<EventHandler>) -> Self {
+    fn new(entry_rx: mpsc::Receiver<Entry>, handlers_rx: &mpsc::Receiver<EventHandler>) -> Self {
         debug!(
             "New thread for session {}",
             thread::current().name().unwrap()
@@ -56,7 +56,7 @@ impl SessionHandler {
     fn read_entries(&self) {
         for e in self.entry_rx.iter() {
             for h in self.event_handlers.iter() {
-                if h.is_callable(e.event.clone()) {
+                if h.is_callable(&e.event) {
                     h.call(&e);
                 }
             }
@@ -64,6 +64,7 @@ impl SessionHandler {
     }
 }
 
+#[derive(Default)]
 pub struct SmtpIn {
     sessions: HashMap<u64, (mpsc::Sender<Entry>, thread::JoinHandle<()>)>,
     event_handlers: Vec<EventHandler>,
@@ -94,7 +95,7 @@ impl SmtpIn {
                 let (entry_tx, entry_rx) = mpsc::channel();
                 let name = entry.session_id.to_string();
                 let handle = thread::Builder::new().name(name).spawn(move || {
-                    SessionHandler::new(entry_rx, handlers_rx).read_entries();
+                    SessionHandler::new(entry_rx, &handlers_rx).read_entries();
                 })?;
                 for h in self.event_handlers.iter() {
                     handlers_tx.send(h.clone())?;
@@ -133,7 +134,7 @@ impl SmtpIn {
     }
 
     pub fn event_handlers(&mut self, handlers: Vec<EventHandler>) -> &mut Self {
-        self.event_handlers = handlers.clone();
+        self.event_handlers = handlers.to_owned();
         self
     }
 

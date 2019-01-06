@@ -14,7 +14,7 @@ pub fn event(attr: TokenStream, input: TokenStream) -> TokenStream {
     let fn_output = &item.decl.output;
     let output = quote! {
         fn #fn_name() -> opensmtpd::EventHandler {
-            opensmtpd::EventHandler::new(#attr.to_string(), |#fn_params| #fn_output #fn_body)
+            opensmtpd::EventHandler::new(#attr, |#fn_params| #fn_output #fn_body)
         }
     };
     output.into()
