@@ -100,7 +100,7 @@ impl SmtpIn {
                     handlers_tx.send(h.clone())?;
                 }
                 self.sessions.insert(entry.session_id, (entry_tx, handle));
-                let (r, _) = self.sessions.get(&entry.session_id).unwrap();
+                let (r, _) = &self.sessions[&entry.session_id];
                 r
             }
         };
