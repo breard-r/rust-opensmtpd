@@ -33,6 +33,18 @@ pub enum Event {
     FilterResponse,
 }
 
+impl Event {
+    pub fn from_str(s: &str) -> Result<Event, Error> {
+        let s = s.to_lowercase()
+            .replace("link", "link-")
+            .replace("tx", "tx-")
+            .replace("protocol", "protocol-")
+            .replace("filter", "filter-");
+        let (_, evt) = parse_event(&s)?;
+        Ok(evt)
+    }
+}
+
 #[derive(Debug)]
 pub struct TimeVal {
     pub sec: i64,
@@ -159,8 +171,7 @@ named!(parse_params<&str, String>,
     )
 );
 
-named!(
-    parse_entry<&str, Entry>,
+named!(parse_entry<&str, Entry>,
     do_parse!(
         kind: parse_kind >>
         tag!("|") >>

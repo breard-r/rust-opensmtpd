@@ -1,23 +1,5 @@
-[package]
-name = "opensmtpd"
-version = "0.1.0"
-authors = ["Rodolphe Bréard <rodolphe@what.tf>"]
-edition = "2018"
-description = "Interface for OpenSMTPD filters"
-keywords = ["opensmtpd", "filter", "mail"]
-documentation = "https://docs.rs/opensmtpd/"
-repository = "https://github.com/breard-r/rust-opensmtpd"
-readme = "README.md"
-license = "CECILL-B"
-include = ["src/**/*", "Cargo.toml", "Licence_*.txt"]
-
-[dependencies]
-log = "0.4"
-nom = "4.1"
-
-[[example]]
-name = "dummy"
-path = "examples/dummy.rs"
-
-[dev-dependencies]
-env_logger = "0.6"
+[workspace]
+members = [
+    "opensmtpd",
+    "opensmtpd-derive"
+]

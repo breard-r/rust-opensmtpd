@@ -11,6 +11,7 @@ use std::thread;
 pub use crate::entry::{Entry, Event};
 pub use crate::errors::Error;
 pub use crate::event_handlers::{EventHandler, MatchEvent};
+pub use opensmtpd_derive::event;
 
 #[macro_export]
 macro_rules! handlers {
