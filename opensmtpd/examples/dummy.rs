@@ -1,6 +1,6 @@
 use env_logger::{Builder, Env};
 use log::{debug, info};
-use opensmtpd::{event, handlers, Entry, EventHandler, SmtpIn};
+use opensmtpd::{event, handlers, Entry, SmtpIn};
 
 #[event(Any)]
 fn on_event(entry: &Entry) -> bool {
