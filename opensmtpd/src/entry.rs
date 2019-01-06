@@ -1,6 +1,7 @@
 use crate::errors::Error;
 use nom::{alt, alt_complete, call, complete, cond, do_parse, error_position, map_res, named, opt,
           tag, take_until, take_while};
+use std::str::FromStr;
 
 #[derive(Clone, Debug, PartialEq)]
 pub enum Kind {
@@ -33,8 +34,10 @@ pub enum Event {
     FilterResponse,
 }
 
-impl Event {
-    pub fn from_str(s: &str) -> Result<Event, Error> {
+impl FromStr for Event {
+    type Err = Error;
+
+    fn from_str(s: &str) -> Result<Self, Self::Err> {
         let s = s.to_lowercase()
             .replace("link", "link-")
             .replace("tx", "tx-")
@@ -69,8 +72,10 @@ pub struct Entry {
     pub params: Option<String>,
 }
 
-impl Entry {
-    pub fn from_str(entry: &str) -> Result<Entry, Error> {
+impl FromStr for Entry {
+    type Err = Error;
+
+    fn from_str(entry: &str) -> Result<Self, Self::Err> {
         let (_, res) = parse_entry(entry)?;
         Ok(res)
     }

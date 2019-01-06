@@ -5,6 +5,7 @@ mod event_handlers;
 use log::{debug, error, warn};
 use std::collections::HashMap;
 use std::io;
+use std::str::FromStr;
 use std::sync::mpsc;
 use std::thread;
 

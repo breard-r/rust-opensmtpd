@@ -1,5 +1,6 @@
 use crate::entry::{Entry, Event};
 use crate::Response;
+use std::str::FromStr;
 
 #[derive(Clone, Debug, PartialEq)]
 pub enum MatchEvent {
