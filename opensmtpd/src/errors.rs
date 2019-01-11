@@ -43,8 +43,8 @@ impl From<std::sync::mpsc::SendError<Entry>> for Error {
     }
 }
 
-impl From<std::sync::mpsc::SendError<EventHandler>> for Error {
-    fn from(error: std::sync::mpsc::SendError<EventHandler>) -> Self {
+impl<T> From<std::sync::mpsc::SendError<EventHandler<T>>> for Error {
+    fn from(error: std::sync::mpsc::SendError<EventHandler<T>>) -> Self {
         Error::new(&format!("IO error: {}", error))
     }
 }

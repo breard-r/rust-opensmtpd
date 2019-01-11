@@ -11,7 +11,7 @@ use std::thread;
 
 pub use crate::entry::{Entry, Event};
 pub use crate::errors::Error;
-pub use crate::event_handlers::{EventHandler, MatchEvent};
+pub use crate::event_handlers::{Callback, EventHandler, MatchEvent};
 pub use opensmtpd_derive::event;
 
 #[macro_export]
@@ -31,13 +31,16 @@ pub enum Response {
     None,
 }
 
-struct SessionHandler {
+#[derive(Clone, Default)]
+pub struct NoContext;
+
+struct SessionHandler<T> {
     entry_rx: mpsc::Receiver<Entry>,
-    event_handlers: Vec<EventHandler>,
+    event_handlers: Vec<EventHandler<T>>,
 }
 
-impl SessionHandler {
-    fn new(entry_rx: mpsc::Receiver<Entry>, handlers_rx: &mpsc::Receiver<EventHandler>) -> Self {
+impl<T: Clone + Default> SessionHandler<T> {
+    fn new(entry_rx: mpsc::Receiver<Entry>, handlers_rx: &mpsc::Receiver<EventHandler<T>>) -> Self {
         debug!(
             "New thread for session {}",
             thread::current().name().unwrap()
@@ -54,10 +57,11 @@ impl SessionHandler {
     }
 
     fn read_entries(&self) {
+        let mut context: T = Default::default();
         for e in self.entry_rx.iter() {
             for h in self.event_handlers.iter() {
                 if h.is_callable(&e.event) {
-                    h.call(&e);
+                    h.call(&e, &mut context);
                 }
             }
         }
@@ -65,15 +69,15 @@ impl SessionHandler {
 }
 
 #[derive(Default)]
-pub struct SmtpIn {
+pub struct SmtpIn<T> {
     sessions: HashMap<u64, (mpsc::Sender<Entry>, thread::JoinHandle<()>)>,
-    event_handlers: Vec<EventHandler>,
+    event_handlers: Vec<EventHandler<T>>,
 }
 
-impl SmtpIn {
+impl<T: Clone + Default + 'static> SmtpIn<T> {
     /// Read a line from the standard input.
     /// Since EOF should not append, it is considered as an error.
-    fn read() -> Result<String, Error> {
+    fn read(&self) -> Result<String, Error> {
         let mut input = String::new();
         let nb = io::stdin().read_line(&mut input)?;
         match nb {
@@ -133,7 +137,7 @@ impl SmtpIn {
         }
     }
 
-    pub fn event_handlers(&mut self, handlers: Vec<EventHandler>) -> &mut Self {
+    pub fn event_handlers(&mut self, handlers: Vec<EventHandler<T>>) -> &mut Self {
         self.event_handlers = handlers.to_owned();
         self
     }
@@ -141,7 +145,7 @@ impl SmtpIn {
     /// Run the infinite loop that will read and process input from stdin.
     pub fn run(&mut self) {
         loop {
-            let line = match SmtpIn::read() {
+            let line = match self.read() {
                 Ok(l) => l,
                 Err(e) => {
                     self.graceful_exit_children();

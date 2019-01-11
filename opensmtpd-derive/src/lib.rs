@@ -13,8 +13,13 @@ pub fn event(attr: TokenStream, input: TokenStream) -> TokenStream {
     let fn_body = &item.block;
     let fn_output = &item.decl.output;
     let output = quote! {
-        fn #fn_name() -> opensmtpd::EventHandler {
-            opensmtpd::EventHandler::new(#attr, |#fn_params| #fn_output #fn_body)
+        // TODO: set the correct EventHandler type
+        fn #fn_name() -> opensmtpd::EventHandler<opensmtpd::NoContext> {
+            // TODO: set the correct Callback type
+            opensmtpd::EventHandler::new(
+                #attr,
+                opensmtpd::Callback::CtxMut(|#fn_params| #fn_output #fn_body)
+            )
         }
     };
     output.into()
