@@ -20,5 +20,9 @@ opensmtpd_derive = { path = "../opensmtpd-derive", version="0.1" }
 name = "dummy"
 path = "examples/dummy.rs"
 
+[[example]]
+name = "counter"
+path = "examples/session_event_counter.rs"
+
 [dev-dependencies]
 env_logger = "0.6"

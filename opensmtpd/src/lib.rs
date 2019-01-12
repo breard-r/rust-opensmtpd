@@ -79,16 +79,14 @@ impl<T: Clone + Default + 'static> SmtpIn<T> {
         let mut evts = Vec::new();
         for eh in self.event_handlers.iter() {
             match eh.event {
-                MatchEvent::Evt(ref v) => {
-                    for e in v.iter() {
-                        evts.push(e);
-                    }
+                MatchEvent::Evt(ref v) => for e in v.iter() {
+                    evts.push(e);
                 },
                 MatchEvent::All => {
                     println!("register|report|smtp-in|*");
                     evts.clear();
-                    break ;
-                },
+                    break;
+                }
             }
         }
         evts.dedup();

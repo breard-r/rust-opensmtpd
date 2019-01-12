@@ -65,11 +65,7 @@ mod test {
 
     #[test]
     fn test_eventhandler_build_noctx() {
-        // TODO: Remove the ::<NoContext>
-        EventHandler::new(
-            "Any",
-            Callback::NoCtx::<NoContext>(|_entry: &Entry| {}),
-        );
+        EventHandler::new("Any", Callback::NoCtx::<NoContext>(|_entry: &Entry| {}));
     }
 
     #[test]
