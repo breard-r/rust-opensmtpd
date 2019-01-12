@@ -1,5 +1,4 @@
 use crate::entry::{Entry, Event};
-use crate::Response;
 use std::str::FromStr;
 
 #[derive(Clone, Debug, PartialEq)]
@@ -10,9 +9,9 @@ pub enum MatchEvent {
 
 #[derive(Clone)]
 pub enum Callback<T> {
-    NoCtx(fn(&Entry) -> Response),
-    Ctx(fn(&T, &Entry) -> Response),
-    CtxMut(fn(&mut T, &Entry) -> Response),
+    NoCtx(fn(&Entry)),
+    Ctx(fn(&T, &Entry)),
+    CtxMut(fn(&mut T, &Entry)),
 }
 
 #[derive(Clone)]
@@ -52,14 +51,11 @@ impl<T: Clone + Default> EventHandler<T> {
     }
 
     pub fn call(&self, entry: &Entry, context: &mut T) {
-        let ret = match self.callback {
+        match self.callback {
             Callback::NoCtx(f) => f(entry),
             Callback::Ctx(f) => f(context, entry),
             Callback::CtxMut(f) => f(context, entry),
         };
-        match ret {
-            Response::None => {}
-        }
     }
 }
 
@@ -68,10 +64,27 @@ mod test {
     use crate::*;
 
     #[test]
-    fn test_eventhandler_build() {
+    fn test_eventhandler_build_noctx() {
+        // TODO: Remove the ::<NoContext>
         EventHandler::new(
             "Any",
-            |_context: &mut NoContext, _entry: &Entry| -> Response { Response::None },
+            Callback::NoCtx::<NoContext>(|_entry: &Entry| {}),
+        );
+    }
+
+    #[test]
+    fn test_eventhandler_build_ctx() {
+        EventHandler::new(
+            "Any",
+            Callback::Ctx(|_context: &NoContext, _entry: &Entry| {}),
+        );
+    }
+
+    #[test]
+    fn test_eventhandler_build_ctxmut() {
+        EventHandler::new(
+            "Any",
+            Callback::CtxMut(|_context: &mut NoContext, _entry: &Entry| {}),
         );
     }
 }
