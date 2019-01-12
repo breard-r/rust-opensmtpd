@@ -17,7 +17,7 @@ pub enum Callback<T> {
 
 #[derive(Clone)]
 pub struct EventHandler<T> {
-    event: MatchEvent,
+    pub(crate) event: MatchEvent,
     callback: Callback<T>,
 }
 

@@ -48,6 +48,29 @@ impl FromStr for Event {
     }
 }
 
+impl ToString for Event {
+    fn to_string(&self) -> String {
+        let s = match self {
+            Event::LinkConnect => "link-connect",
+            Event::LinkDisconnect => "link-disconnect",
+            Event::LinkIdentify => "link-identify",
+            Event::LinkTls => "link-tls",
+            Event::TxBegin => "tx-begin",
+            Event::TxMail => "tx-mail",
+            Event::TxRcpt => "tx-rcpt",
+            Event::TxEnvelope => "tx-envelope",
+            Event::TxData => "tx-data",
+            Event::TxCommit => "tx-commit",
+            Event::TxRollback => "tx-rollback",
+            Event::ProtocolClient => "protocol-client",
+            Event::ProtocolServer => "protocol-server",
+            Event::Timeout => "timeout",
+            Event::FilterResponse => "filter-response",
+        };
+        String::from(s)
+    }
+}
+
 #[derive(Debug)]
 pub struct TimeVal {
     pub sec: i64,

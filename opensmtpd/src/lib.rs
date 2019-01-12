@@ -75,6 +75,31 @@ pub struct SmtpIn<T> {
 }
 
 impl<T: Clone + Default + 'static> SmtpIn<T> {
+    fn register_events(&self) {
+        let mut evts = Vec::new();
+        for eh in self.event_handlers.iter() {
+            match eh.event {
+                MatchEvent::Evt(ref v) => {
+                    for e in v.iter() {
+                        evts.push(e);
+                    }
+                },
+                MatchEvent::All => {
+                    println!("register|report|smtp-in|*");
+                    evts.clear();
+                    break ;
+                },
+            }
+        }
+        evts.dedup();
+        for e in evts.iter() {
+            println!("register|report|smtp-in|{}", e.to_string());
+        }
+        // TODO: register filters
+        // println!("register|filter|smtp-in|{}", "name");
+        println!("register|ready");
+    }
+
     /// Read a line from the standard input.
     /// Since EOF should not append, it is considered as an error.
     fn read(&self) -> Result<String, Error> {
@@ -144,6 +169,7 @@ impl<T: Clone + Default + 'static> SmtpIn<T> {
 
     /// Run the infinite loop that will read and process input from stdin.
     pub fn run(&mut self) {
+        self.register_events();
         loop {
             let line = match self.read() {
                 Ok(l) => l,
