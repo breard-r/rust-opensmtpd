@@ -1,6 +1,5 @@
-use env_logger::{Builder, Env};
-use log::info;
-use opensmtpd::{event, handlers, Entry, SmtpIn};
+use log::{info, Level};
+use opensmtpd::{event, handlers, Entry, SmtpIn, SmtpdLogger};
 
 #[derive(Clone, Default)]
 struct MyContext {
@@ -14,6 +13,6 @@ fn on_event(ctx: &mut MyContext, entry: &Entry) {
 }
 
 fn main() {
-    Builder::from_env(Env::default().default_filter_or("debug")).init();
+    let _ = SmtpdLogger::new().set_level(Level::Debug).init();
     SmtpIn::new().event_handlers(handlers!(on_event)).run();
 }

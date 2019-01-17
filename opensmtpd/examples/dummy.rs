@@ -1,6 +1,5 @@
-use env_logger::{Builder, Env};
-use log::{debug, info};
-use opensmtpd::{event, handlers, Entry, SmtpIn};
+use log::{debug, info, Level};
+use opensmtpd::{event, handlers, Entry, SmtpIn, SmtpdLogger};
 
 #[event(Any)]
 fn on_event(entry: &Entry) {
@@ -13,7 +12,7 @@ fn on_connect(entry: &Entry) {
 }
 
 fn main() {
-    Builder::from_env(Env::default().default_filter_or("debug")).init();
+    let _ = SmtpdLogger::new().set_level(Level::Debug).init();
     SmtpIn::new()
         .event_handlers(handlers!(on_event, on_connect))
         .run();

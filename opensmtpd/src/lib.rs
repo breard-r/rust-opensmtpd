@@ -1,6 +1,7 @@
 mod entry;
 mod errors;
 mod event_handlers;
+mod logger;
 
 use log::{debug, error, warn};
 use std::collections::HashMap;
@@ -12,6 +13,7 @@ use std::thread;
 pub use crate::entry::{Entry, Event};
 pub use crate::errors::Error;
 pub use crate::event_handlers::{Callback, EventHandler, MatchEvent};
+pub use crate::logger::SmtpdLogger;
 pub use opensmtpd_derive::event;
 
 #[macro_export]

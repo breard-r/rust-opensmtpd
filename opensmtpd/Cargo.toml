@@ -12,9 +12,9 @@ license = "CECILL-B"
 include = ["src/**/*", "Cargo.toml", "Licence_*.txt"]
 
 [dependencies]
-log = "0.4"
+log = {version = "0.4", features = ["std"]}
 nom = "4.1"
-opensmtpd_derive = { path = "../opensmtpd-derive", version="0.1" }
+opensmtpd_derive = { path = "../opensmtpd-derive", version = "0.1" }
 
 [[example]]
 name = "dummy"
@@ -23,6 +23,3 @@ path = "examples/dummy.rs"
 [[example]]
 name = "counter"
 path = "examples/session_event_counter.rs"
-
-[dev-dependencies]
-env_logger = "0.6"

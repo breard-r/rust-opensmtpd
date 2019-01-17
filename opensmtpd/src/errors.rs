@@ -26,6 +26,12 @@ impl From<std::io::Error> for Error {
     }
 }
 
+impl From<log::SetLoggerError> for Error {
+    fn from(error: log::SetLoggerError) -> Self {
+        Error::new(&format!("Logger error: {}", error))
+    }
+}
+
 impl From<nom::Err<&str>> for Error {
     fn from(error: nom::Err<&str>) -> Self {
         let msg = match error {
