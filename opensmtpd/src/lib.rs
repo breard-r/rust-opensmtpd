@@ -14,7 +14,7 @@ pub use crate::entry::{Entry, Event};
 pub use crate::errors::Error;
 pub use crate::event_handlers::{Callback, EventHandler, MatchEvent};
 pub use crate::logger::SmtpdLogger;
-pub use opensmtpd_derive::event;
+pub use opensmtpd_derive::{event, report};
 
 #[macro_export]
 macro_rules! handlers {

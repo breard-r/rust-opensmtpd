@@ -64,3 +64,8 @@ pub fn event(attr: TokenStream, input: TokenStream) -> TokenStream {
     };
     output.into()
 }
+
+#[proc_macro_attribute]
+pub fn report(attr: TokenStream, input: TokenStream) -> TokenStream {
+    event(attr, input)
+}
