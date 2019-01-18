@@ -7,8 +7,10 @@
 // except according to those terms.
 
 use crate::errors::Error;
-use nom::{alt, alt_complete, call, complete, cond, do_parse, error_position, map_res, named, opt,
-          tag, take_until, take_while};
+use nom::{
+    alt, alt_complete, call, complete, cond, do_parse, error_position, map_res, named, opt, tag,
+    take_until, take_while,
+};
 use std::str::FromStr;
 
 #[derive(Clone, Debug, PartialEq)]
@@ -46,7 +48,8 @@ impl FromStr for Event {
     type Err = Error;
 
     fn from_str(s: &str) -> Result<Self, Self::Err> {
-        let s = s.to_lowercase()
+        let s = s
+            .to_lowercase()
             .replace("link", "link-")
             .replace("tx", "tx-")
             .replace("protocol", "protocol-")

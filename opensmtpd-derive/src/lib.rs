@@ -9,8 +9,8 @@
 extern crate proc_macro;
 
 use proc_macro::TokenStream;
-use syn::{parse_macro_input, ItemFn};
 use quote::quote;
+use syn::{parse_macro_input, ItemFn};
 
 fn get_type(
     params: &syn::punctuated::Punctuated<syn::FnArg, syn::token::Comma>,
@@ -23,7 +23,7 @@ fn get_type(
                 },
             }));
             let cb = syn::Type::Verbatim(syn::TypeVerbatim {
-                tts: quote!{ opensmtpd::Callback::NoCtx },
+                tts: quote! { opensmtpd::Callback::NoCtx },
             });
             Ok((ctx, cb))
         }
@@ -32,10 +32,10 @@ fn get_type(
                 syn::Type::Reference(r) => {
                     let cb = match r.mutability {
                         Some(_) => syn::Type::Verbatim(syn::TypeVerbatim {
-                            tts: quote!{ opensmtpd::Callback::CtxMut },
+                            tts: quote! { opensmtpd::Callback::CtxMut },
                         }),
                         None => syn::Type::Verbatim(syn::TypeVerbatim {
-                            tts: quote!{ opensmtpd::Callback::Ctx },
+                            tts: quote! { opensmtpd::Callback::Ctx },
                         }),
                     };
                     Ok((r.elem.clone(), cb))

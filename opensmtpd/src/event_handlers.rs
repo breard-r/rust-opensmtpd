@@ -35,9 +35,11 @@ fn get_events_from_string(event_str: &str) -> MatchEvent {
             "Any" | "All" => {
                 return MatchEvent::All;
             }
-            _ => if let Ok(e) = Event::from_str(name) {
-                events.push(e);
-            },
+            _ => {
+                if let Ok(e) = Event::from_str(name) {
+                    events.push(e);
+                }
+            }
         }
     }
     MatchEvent::Evt(events)
