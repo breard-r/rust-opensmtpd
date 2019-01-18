@@ -8,8 +8,8 @@ keywords = ["opensmtpd", "filter", "mail"]
 documentation = "https://docs.rs/opensmtpd/"
 repository = "https://github.com/breard-r/rust-opensmtpd"
 readme = "README.md"
-license = "CECILL-B"
-include = ["src/**/*", "Cargo.toml", "Licence_*.txt"]
+license = "MIT OR Apache-2.0"
+include = ["src/**/*", "Cargo.toml", "LICENSE-*.txt"]
 
 [dependencies]
 log = {version = "0.4", features = ["std"]}
