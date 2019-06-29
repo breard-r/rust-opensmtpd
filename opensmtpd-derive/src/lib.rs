@@ -56,7 +56,7 @@ pub fn event(attr: TokenStream, input: TokenStream) -> TokenStream {
     let fn_params = &item.decl.inputs;
     let (ctx_type, callback_type) = match get_type(fn_params) {
         Ok(t) => t,
-        Err(_) => {
+        Err(_e) => {
             panic!();
         }
     };
