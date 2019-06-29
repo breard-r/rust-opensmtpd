@@ -7,7 +7,13 @@
 // except according to those terms.
 
 use crate::errors::Error;
-use nom::{alt_complete, call, cond, do_parse, map_res, named, opt, tag, take_until, take_while};
+use nom::branch::alt;
+use nom::bytes::complete::tag;
+use nom::character::complete::{anychar, digit1, hex_digit1, line_ending};
+use nom::combinator::{map_res, opt, value};
+use nom::multi::many_till;
+use nom::sequence::preceded;
+use nom::IResult;
 use std::str::FromStr;
 
 #[derive(Clone, Debug, PartialEq)]
@@ -45,7 +51,8 @@ impl FromStr for Event {
     type Err = Error;
 
     fn from_str(s: &str) -> Result<Self, Self::Err> {
-        let s = s.to_lowercase()
+        let s = s
+            .to_lowercase()
             .replace("link", "link-")
             .replace("tx", "tx-")
             .replace("protocol", "protocol-")
@@ -111,125 +118,101 @@ impl FromStr for Entry {
     }
 }
 
-fn is_ascii_digit(c: char) -> bool {
-    c.is_ascii_digit()
+fn separator(input: &str) -> IResult<&str, &str> {
+    tag("|")(input)
 }
 
-fn is_ascii_digit_or_neg(c: char) -> bool {
-    c.is_ascii_digit() || c == '-'
+fn parse_kind(input: &str) -> IResult<&str, Kind> {
+    alt((
+        value(Kind::Report, tag("report")),
+        value(Kind::Filter, tag("filter")),
+    ))(input)
 }
 
-fn is_ascii_hexdigit(c: char) -> bool {
-    c.is_ascii_hexdigit()
+fn parse_version(input: &str) -> IResult<&str, u8> {
+    map_res(digit1, |s: &str| s.parse::<u8>())(input)
 }
 
-fn to_u8(s: &str) -> Result<u8, std::num::ParseIntError> {
-    s.parse()
+fn parse_timestamp(input: &str) -> IResult<&str, TimeVal> {
+    let (input, sec) = map_res(digit1, |s: &str| s.parse::<i64>())(input)?;
+    let (input, _) = tag(".")(input)?;
+    let (input, usec) = map_res(digit1, |s: &str| s.parse::<i64>())(input)?;
+    let timestamp = TimeVal { sec, usec };
+    Ok((input, timestamp))
 }
 
-fn to_i64(s: &str) -> Result<i64, std::num::ParseIntError> {
-    s.parse()
+fn parse_subsystem(input: &str) -> IResult<&str, Subsystem> {
+    alt((
+        value(Subsystem::SmtpIn, tag("smtp-in")),
+        value(Subsystem::SmtpOut, tag("smtp-out")),
+    ))(input)
 }
 
-fn to_u64_hex(s: &str) -> Result<u64, std::num::ParseIntError> {
-    u64::from_str_radix(s, 16)
+fn parse_event(input: &str) -> IResult<&str, Event> {
+    alt((
+        value(Event::LinkConnect, tag("link-connect")),
+        value(Event::LinkDisconnect, tag("link-disconnect")),
+        value(Event::LinkIdentify, tag("link-identify")),
+        value(Event::LinkTls, tag("link-tls")),
+        value(Event::TxBegin, tag("tx-begin")),
+        value(Event::TxMail, tag("tx-mail")),
+        value(Event::TxRcpt, tag("tx-rcpt")),
+        value(Event::TxEnvelope, tag("tx-envelope")),
+        value(Event::TxData, tag("tx-data")),
+        value(Event::TxCommit, tag("tx-commit")),
+        value(Event::TxRollback, tag("tx-rollback")),
+        value(Event::ProtocolClient, tag("protocol-client")),
+        value(Event::ProtocolServer, tag("protocol-server")),
+        value(Event::Timeout, tag("timeout")),
+        value(Event::FilterResponse, tag("filter-response")),
+    ))(input)
 }
 
-named!(parse_i64<&str, i64>,
-    map_res!(take_while!(is_ascii_digit_or_neg), to_i64)
-);
+fn parse_token(input: &str) -> IResult<&str, u64> {
+    map_res(hex_digit1, |s: &str| u64::from_str_radix(s, 16))(input)
+}
 
-named!(parse_u64_hex<&str, u64>,
-    map_res!(take_while!(is_ascii_hexdigit), to_u64_hex)
-);
+fn parse_session_id(input: &str) -> IResult<&str, u64> {
+    map_res(hex_digit1, |s: &str| u64::from_str_radix(s, 16))(input)
+}
 
-named!(parse_kind<&str, Kind>,
-    alt_complete!(
-        tag!("report") => { |_| Kind::Report } |
-        tag!("filter") => { |_| Kind::Filter }
-    )
-);
+fn parse_params(input: &str) -> IResult<&str, String> {
+    let (input, params) = many_till(anychar, line_ending)(input)?;
+    Ok((input, params.0.into_iter().collect()))
+}
 
-named!(parse_version<&str, u8>,
-    map_res!(take_while!(is_ascii_digit), to_u8)
-);
-
-named!(parse_timestamp<&str, TimeVal>,
-    do_parse!(
-        sec: parse_i64 >>
-        tag!(".") >>
-        usec: parse_i64 >>
-        (TimeVal { sec, usec})
-    )
-);
-
-named!(parse_subsystem<&str, Subsystem>,
-    alt_complete! (
-        tag!("smtp-in") => { |_| Subsystem::SmtpIn } |
-        tag!("smtp-out") => { |_| Subsystem::SmtpOut }
-    )
-);
-
-named!(parse_event<&str, Event>,
-    alt_complete!(
-        tag!("link-connect") => { |_| Event::LinkConnect } |
-        tag!("link-disconnect") => { |_| Event::LinkDisconnect } |
-        tag!("link-identify") => { |_| Event::LinkIdentify } |
-        tag!("link-tls") => { |_| Event::LinkTls } |
-        tag!("tx-begin") => { |_| Event::TxBegin } |
-        tag!("tx-mail") => { |_| Event::TxMail } |
-        tag!("tx-rcpt") => { |_| Event::TxRcpt } |
-        tag!("tx-envelope") => { |_| Event::TxEnvelope } |
-        tag!("tx-data") => { |_| Event::TxData } |
-        tag!("tx-commit") => { |_| Event::TxCommit } |
-        tag!("tx-rollback") => { |_| Event::TxRollback } |
-        tag!("protocol-client") => { |_| Event::ProtocolClient } |
-        tag!("protocol-server") => { |_| Event::ProtocolServer } |
-        tag!("timeout") => { |_| Event::Timeout } |
-        tag!("filter-response") => { |_| Event::FilterResponse }
-    )
-);
-
-named!(parse_token<&str, u64>,
-    do_parse!(
-        token: parse_u64_hex >>
-        tag!("|") >>
-        (token)
-    )
-);
-
-named!(parse_params<&str, String>,
-    do_parse!(
-        tag!("|") >>
-        s: take_until!("\n") >>
-        (s.to_string())
-    )
-);
-
-named!(parse_entry<&str, Entry>,
-    do_parse!(
-        kind: parse_kind >>
-        tag!("|") >>
-        version: parse_version >>
-        tag!("|") >>
-        timestamp: parse_timestamp >>
-        tag!("|") >>
-        subsystem: parse_subsystem >>
-        tag!("|") >>
-        event: parse_event >>
-        tag!("|") >>
-        token: cond!(kind == Kind::Filter, parse_token) >>
-        session_id: parse_u64_hex >>
-        params: opt!(parse_params) >>
-        (Entry {
-            kind,
-            version,
-            timestamp,
-            subsystem,
-            event,
-            token,
-            session_id,
-            params,
-        })
-    )
-);
+fn parse_entry(input: &str) -> IResult<&str, Entry> {
+    let (input, kind) = parse_kind(input)?;
+    let (input, _) = separator(input)?;
+    let (input, version) = parse_version(input)?;
+    let (input, _) = separator(input)?;
+    let (input, timestamp) = parse_timestamp(input)?;
+    let (input, _) = separator(input)?;
+    let (input, subsystem) = parse_subsystem(input)?;
+    let (input, _) = separator(input)?;
+    let (input, event) = parse_event(input)?;
+    let (input, token) = if kind == Kind::Filter {
+        let (input, _) = separator(input)?;
+        let (input, token) = parse_token(input)?;
+        (input, Some(token))
+    } else {
+        (input, None)
+    };
+    let (input, _) = separator(input)?;
+    let (input, session_id) = parse_session_id(input)?;
+    let (input, params) = opt(preceded(separator, parse_params))(input)?;
+    if params.is_none() {
+        let _ = line_ending(input)?;
+    }
+    let entry = Entry {
+        kind,
+        version,
+        timestamp,
+        subsystem,
+        event,
+        token,
+        session_id,
+        params,
+    };
+    Ok((input, entry))
+}

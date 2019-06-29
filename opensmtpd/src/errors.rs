@@ -40,8 +40,8 @@ impl From<log::SetLoggerError> for Error {
     }
 }
 
-impl From<nom::Err<&str>> for Error {
-    fn from(error: nom::Err<&str>) -> Self {
+impl From<nom::Err<(&str, nom::error::ErrorKind)>> for Error {
+    fn from(error: nom::Err<(&str, nom::error::ErrorKind)>) -> Self {
         let msg = match error {
             nom::Err::Incomplete(_) => "not enough data".to_string(),
             nom::Err::Error(c) => format!("{:?}", c),
