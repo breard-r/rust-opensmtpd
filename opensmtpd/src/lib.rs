@@ -10,6 +10,7 @@ mod entry;
 mod errors;
 mod event_handlers;
 mod logger;
+mod response;
 mod session_handler;
 
 use crate::session_handler::SessionHandler;
@@ -24,6 +25,7 @@ pub use crate::entry::{Entry, Event};
 pub use crate::errors::Error;
 pub use crate::event_handlers::{Callback, EventHandler, MatchEvent};
 pub use crate::logger::SmtpdLogger;
+pub use crate::response::Response;
 pub use opensmtpd_derive::{event, report};
 
 #[macro_export]
@@ -37,10 +39,6 @@ macro_rules! handlers {
             temp_vec
         }
     };
-}
-
-pub enum Response {
-    None,
 }
 
 #[derive(Clone, Default)]
