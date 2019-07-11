@@ -41,7 +41,7 @@ impl<T: Clone + Default> SessionHandler<T> {
         let mut context: T = Default::default();
         for e in self.entry_rx.iter() {
             for h in self.event_handlers.iter() {
-                if h.is_callable(&e.event) {
+                if h.is_callable(&e.get_event()) {
                     h.call(&e, &mut context);
                 }
             }

@@ -91,22 +91,23 @@ impl<T: Clone + Default + 'static> SmtpIn<T> {
     /// already exists, creates it.
     fn dispatch(&mut self, input: &str) -> Result<(), Error> {
         let entry = Entry::from_str(input)?;
-        let id = entry.session_id;
-        let disconnect = entry.event == Event::LinkDisconnect;
+        let id = entry.get_session_id();
+        let disconnect = entry.is_disconnect();
         let channel = match self.sessions.get(&id) {
             Some((r, _)) => r,
             None => {
                 let (handlers_tx, handlers_rx) = mpsc::channel();
                 let (entry_tx, entry_rx) = mpsc::channel();
-                let name = entry.session_id.to_string();
+                let name = entry.get_session_id().to_string();
                 let handle = thread::Builder::new().name(name).spawn(move || {
                     SessionHandler::new(entry_rx, &handlers_rx).read_entries();
                 })?;
                 for h in self.event_handlers.iter() {
                     handlers_tx.send(h.clone())?;
                 }
-                self.sessions.insert(entry.session_id, (entry_tx, handle));
-                let (r, _) = &self.sessions[&entry.session_id];
+                self.sessions
+                    .insert(entry.get_session_id(), (entry_tx, handle));
+                let (r, _) = &self.sessions[&entry.get_session_id()];
                 r
             }
         };

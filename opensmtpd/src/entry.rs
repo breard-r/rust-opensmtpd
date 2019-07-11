@@ -17,6 +17,11 @@ use nom::IResult;
 use std::str::FromStr;
 
 #[derive(Clone, Debug, PartialEq)]
+enum Version {
+    V1,
+}
+
+#[derive(Clone, Debug, PartialEq)]
 pub enum Kind {
     Report,
     Filter,
@@ -43,20 +48,23 @@ pub enum Event {
     TxRollback,
     ProtocolClient,
     ProtocolServer,
-    Timeout,
     FilterResponse,
+    Timeout,
 }
 
 impl FromStr for Event {
     type Err = Error;
 
     fn from_str(s: &str) -> Result<Self, Self::Err> {
-        let s = s
-            .to_lowercase()
-            .replace("link", "link-")
-            .replace("tx", "tx-")
-            .replace("protocol", "protocol-")
-            .replace("filter", "filter-");
+        let s = s.to_lowercase();
+        let s = if !s.contains('-') {
+            s.replace("link", "link-")
+                .replace("tx", "tx-")
+                .replace("protocol", "protocol-")
+                .replace("filter", "filter-")
+        } else {
+            s
+        };
         let (_, evt) = parse_event(&s)?;
         Ok(evt)
     }
@@ -78,8 +86,8 @@ impl ToString for Event {
             Event::TxRollback => "tx-rollback",
             Event::ProtocolClient => "protocol-client",
             Event::ProtocolServer => "protocol-server",
-            Event::Timeout => "timeout",
             Event::FilterResponse => "filter-response",
+            Event::Timeout => "timeout",
         };
         String::from(s)
     }
@@ -98,15 +106,9 @@ impl TimeVal {
 }
 
 #[derive(Debug)]
-pub struct Entry {
-    pub kind: Kind,
-    pub version: u8,
-    pub timestamp: TimeVal,
-    pub subsystem: Subsystem,
-    pub event: Event,
-    pub token: Option<u64>,
-    pub session_id: u64,
-    pub params: Option<String>,
+pub enum Entry {
+    V1Report(V1Report),
+    V1Filter(V1Filter),
 }
 
 impl FromStr for Entry {
@@ -116,6 +118,48 @@ impl FromStr for Entry {
         let (_, res) = parse_entry(entry)?;
         Ok(res)
     }
+}
+
+impl Entry {
+    pub fn get_event(&self) -> Event {
+        match self {
+            Entry::V1Report(r) => r.event.to_owned(),
+            Entry::V1Filter(f) => f.event.to_owned(),
+        }
+    }
+
+    pub fn get_session_id(&self) -> u64 {
+        match self {
+            Entry::V1Report(r) => r.session_id,
+            Entry::V1Filter(f) => f.session_id,
+        }
+    }
+
+    pub fn is_disconnect(&self) -> bool {
+        match self {
+            Entry::V1Report(r) => r.event == Event::LinkDisconnect,
+            Entry::V1Filter(_) => false,
+        }
+    }
+}
+
+#[derive(Debug)]
+pub struct V1Report {
+    pub timestamp: TimeVal,
+    pub subsystem: Subsystem,
+    pub event: Event,
+    pub session_id: u64,
+    pub params: Option<String>,
+}
+
+#[derive(Debug)]
+pub struct V1Filter {
+    pub timestamp: TimeVal,
+    pub subsystem: Subsystem,
+    pub event: Event,
+    pub session_id: u64,
+    pub token: u64,
+    pub params: Option<String>,
 }
 
 fn separator(input: &str) -> IResult<&str, &str> {
@@ -129,8 +173,8 @@ fn parse_kind(input: &str) -> IResult<&str, Kind> {
     ))(input)
 }
 
-fn parse_version(input: &str) -> IResult<&str, u8> {
-    map_res(digit1, |s: &str| s.parse::<u8>())(input)
+fn parse_version(input: &str) -> IResult<&str, Version> {
+    value(Version::V1, tag("1"))(input)
 }
 
 fn parse_timestamp(input: &str) -> IResult<&str, TimeVal> {
@@ -163,8 +207,8 @@ fn parse_event(input: &str) -> IResult<&str, Event> {
         value(Event::TxRollback, tag("tx-rollback")),
         value(Event::ProtocolClient, tag("protocol-client")),
         value(Event::ProtocolServer, tag("protocol-server")),
-        value(Event::Timeout, tag("timeout")),
         value(Event::FilterResponse, tag("filter-response")),
+        value(Event::Timeout, tag("timeout")),
     ))(input)
 }
 
@@ -181,38 +225,63 @@ fn parse_params(input: &str) -> IResult<&str, String> {
     Ok((input, params.0.into_iter().collect()))
 }
 
-fn parse_entry(input: &str) -> IResult<&str, Entry> {
-    let (input, kind) = parse_kind(input)?;
-    let (input, _) = separator(input)?;
-    let (input, version) = parse_version(input)?;
-    let (input, _) = separator(input)?;
+fn parse_v1_report(input: &str) -> IResult<&str, Entry> {
     let (input, timestamp) = parse_timestamp(input)?;
     let (input, _) = separator(input)?;
     let (input, subsystem) = parse_subsystem(input)?;
     let (input, _) = separator(input)?;
     let (input, event) = parse_event(input)?;
-    let (input, token) = if kind == Kind::Filter {
-        let (input, _) = separator(input)?;
-        let (input, token) = parse_token(input)?;
-        (input, Some(token))
-    } else {
-        (input, None)
-    };
     let (input, _) = separator(input)?;
     let (input, session_id) = parse_session_id(input)?;
     let (input, params) = opt(preceded(separator, parse_params))(input)?;
     if params.is_none() {
         let _ = line_ending(input)?;
     }
-    let entry = Entry {
-        kind,
-        version,
+    let report = V1Report {
         timestamp,
         subsystem,
         event,
-        token,
         session_id,
         params,
+    };
+    Ok((input, Entry::V1Report(report)))
+}
+
+fn parse_v1_filter(input: &str) -> IResult<&str, Entry> {
+    let (input, timestamp) = parse_timestamp(input)?;
+    let (input, _) = separator(input)?;
+    let (input, subsystem) = parse_subsystem(input)?;
+    let (input, _) = separator(input)?;
+    let (input, event) = parse_event(input)?;
+    let (input, _) = separator(input)?;
+    let (input, token) = parse_token(input)?;
+    let (input, _) = separator(input)?;
+    let (input, session_id) = parse_session_id(input)?;
+    let (input, params) = opt(preceded(separator, parse_params))(input)?;
+    if params.is_none() {
+        let _ = line_ending(input)?;
+    }
+    let filter = V1Filter {
+        timestamp,
+        subsystem,
+        event,
+        session_id,
+        token,
+        params,
+    };
+    Ok((input, Entry::V1Filter(filter)))
+}
+
+fn parse_entry(input: &str) -> IResult<&str, Entry> {
+    let (input, kind) = parse_kind(input)?;
+    let (input, _) = separator(input)?;
+    let (input, version) = parse_version(input)?;
+    let (input, _) = separator(input)?;
+    let (input, entry) = match version {
+        Version::V1 => match kind {
+            Kind::Report => parse_v1_report(input)?,
+            Kind::Filter => parse_v1_filter(input)?,
+        },
     };
     Ok((input, entry))
 }

@@ -8,7 +8,7 @@ fn on_event(entry: &Entry) {
 
 #[event(LinkConnect)]
 fn on_connect(entry: &Entry) {
-    info!("New client on session {:x}.", entry.session_id);
+    info!("New client on session {:x}.", entry.get_session_id());
 }
 
 fn main() {
