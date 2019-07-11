@@ -262,9 +262,9 @@ fn parse_v1_filter(input: &str) -> IResult<&str, Entry> {
     let (input, _) = separator(input)?;
     let (input, event) = parse_event(input)?;
     let (input, _) = separator(input)?;
-    let (input, token) = parse_token(input)?;
-    let (input, _) = separator(input)?;
     let (input, session_id) = parse_session_id(input)?;
+    let (input, _) = separator(input)?;
+    let (input, token) = parse_token(input)?;
     let (input, params) = many0(parse_param)(input)?;
     let _ = line_ending(input)?;
     let filter = V1Filter {
