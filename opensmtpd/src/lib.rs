@@ -10,8 +10,10 @@ mod entry;
 mod errors;
 mod event_handlers;
 mod logger;
+mod session_handler;
 
-use log::{debug, error, warn};
+use crate::session_handler::SessionHandler;
+use log::{error, warn};
 use std::collections::HashMap;
 use std::io;
 use std::str::FromStr;
@@ -43,40 +45,6 @@ pub enum Response {
 
 #[derive(Clone, Default)]
 pub struct NoContext;
-
-struct SessionHandler<T> {
-    entry_rx: mpsc::Receiver<Entry>,
-    event_handlers: Vec<EventHandler<T>>,
-}
-
-impl<T: Clone + Default> SessionHandler<T> {
-    fn new(entry_rx: mpsc::Receiver<Entry>, handlers_rx: &mpsc::Receiver<EventHandler<T>>) -> Self {
-        debug!(
-            "New thread for session {}",
-            thread::current().name().unwrap()
-        );
-        let mut event_handlers = Vec::new();
-        for h in handlers_rx.iter() {
-            debug!("Event handler registered");
-            event_handlers.push(h);
-        }
-        SessionHandler {
-            entry_rx,
-            event_handlers,
-        }
-    }
-
-    fn read_entries(&self) {
-        let mut context: T = Default::default();
-        for e in self.entry_rx.iter() {
-            for h in self.event_handlers.iter() {
-                if h.is_callable(&e.event) {
-                    h.call(&e, &mut context);
-                }
-            }
-        }
-    }
-}
 
 #[derive(Default)]
 pub struct SmtpIn<T> {
