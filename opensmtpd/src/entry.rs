@@ -102,8 +102,8 @@ pub struct TimeVal {
     pub usec: i64,
 }
 
-impl TimeVal {
-    pub fn to_string(&self) -> String {
+impl ToString for TimeVal {
+    fn to_string(&self) -> String {
         format!("{}.{}", self.sec, self.usec)
     }
 }
