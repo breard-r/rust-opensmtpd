@@ -8,11 +8,10 @@
 
 use crate::errors::Error;
 use nom::branch::alt;
-use nom::bytes::complete::tag;
-use nom::character::complete::{anychar, digit1, hex_digit1, line_ending};
-use nom::combinator::{map_res, opt, value};
-use nom::multi::many_till;
-use nom::sequence::preceded;
+use nom::bytes::complete::{tag, take_till};
+use nom::character::complete::{digit1, hex_digit1, line_ending};
+use nom::combinator::{map_res, value};
+use nom::multi::many0;
 use nom::IResult;
 use std::str::FromStr;
 
@@ -149,7 +148,7 @@ pub struct V1Report {
     pub subsystem: Subsystem,
     pub event: Event,
     pub session_id: u64,
-    pub params: Option<String>,
+    pub params: Vec<String>,
 }
 
 #[derive(Debug)]
@@ -159,7 +158,7 @@ pub struct V1Filter {
     pub event: Event,
     pub session_id: u64,
     pub token: u64,
-    pub params: Option<String>,
+    pub params: Vec<String>,
 }
 
 fn separator(input: &str) -> IResult<&str, &str> {
@@ -220,9 +219,14 @@ fn parse_session_id(input: &str) -> IResult<&str, u64> {
     map_res(hex_digit1, |s: &str| u64::from_str_radix(s, 16))(input)
 }
 
-fn parse_params(input: &str) -> IResult<&str, String> {
-    let (input, params) = many_till(anychar, line_ending)(input)?;
-    Ok((input, params.0.into_iter().collect()))
+fn parse_param(input: &str) -> IResult<&str, String> {
+    let (input, _) = separator(input)?;
+    let (input, param) = take_till(is_end_param)(input)?;
+    Ok((input, param.to_string()))
+}
+
+fn is_end_param(c: char) -> bool {
+    c == '|' || c == '\r' || c == '\n'
 }
 
 fn parse_v1_report(input: &str) -> IResult<&str, Entry> {
@@ -233,10 +237,8 @@ fn parse_v1_report(input: &str) -> IResult<&str, Entry> {
     let (input, event) = parse_event(input)?;
     let (input, _) = separator(input)?;
     let (input, session_id) = parse_session_id(input)?;
-    let (input, params) = opt(preceded(separator, parse_params))(input)?;
-    if params.is_none() {
-        let _ = line_ending(input)?;
-    }
+    let (input, params) = many0(parse_param)(input)?;
+    let _ = line_ending(input)?;
     let report = V1Report {
         timestamp,
         subsystem,
@@ -257,10 +259,8 @@ fn parse_v1_filter(input: &str) -> IResult<&str, Entry> {
     let (input, token) = parse_token(input)?;
     let (input, _) = separator(input)?;
     let (input, session_id) = parse_session_id(input)?;
-    let (input, params) = opt(preceded(separator, parse_params))(input)?;
-    if params.is_none() {
-        let _ = line_ending(input)?;
-    }
+    let (input, params) = many0(parse_param)(input)?;
+    let _ = line_ending(input)?;
     let filter = V1Filter {
         timestamp,
         subsystem,
