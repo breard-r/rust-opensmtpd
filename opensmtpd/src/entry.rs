@@ -34,11 +34,12 @@ pub enum Subsystem {
 
 #[derive(Clone, Debug, PartialEq)]
 pub enum Event {
+    LinkAuth,
     LinkConnect,
     LinkDisconnect,
     LinkIdentify,
-    LinkTls,
     LinkReset,
+    LinkTls,
     TxBegin,
     TxMail,
     TxRcpt,
@@ -73,11 +74,12 @@ impl FromStr for Event {
 impl ToString for Event {
     fn to_string(&self) -> String {
         let s = match self {
+            Event::LinkAuth => "link-auth",
             Event::LinkConnect => "link-connect",
             Event::LinkDisconnect => "link-disconnect",
             Event::LinkIdentify => "link-identify",
-            Event::LinkTls => "link-tls",
             Event::LinkReset => "link-reset",
+            Event::LinkTls => "link-tls",
             Event::TxBegin => "tx-begin",
             Event::TxMail => "tx-mail",
             Event::TxRcpt => "tx-rcpt",
@@ -195,11 +197,12 @@ fn parse_subsystem(input: &str) -> IResult<&str, Subsystem> {
 
 fn parse_event(input: &str) -> IResult<&str, Event> {
     alt((
+        value(Event::LinkAuth, tag("link-auth")),
         value(Event::LinkConnect, tag("link-connect")),
         value(Event::LinkDisconnect, tag("link-disconnect")),
         value(Event::LinkIdentify, tag("link-identify")),
-        value(Event::LinkTls, tag("link-tls")),
         value(Event::LinkReset, tag("link-reset")),
+        value(Event::LinkTls, tag("link-tls")),
         value(Event::TxBegin, tag("tx-begin")),
         value(Event::TxMail, tag("tx-mail")),
         value(Event::TxRcpt, tag("tx-rcpt")),
