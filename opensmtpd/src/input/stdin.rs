@@ -10,7 +10,7 @@ use crate::entry::Entry;
 use crate::errors::Error;
 use crate::input::FilterInput;
 use std::default::Default;
-use std::io::{self, Read};
+use std::io::{self, ErrorKind, Read};
 use std::str;
 
 const BUFFER_SIZE: usize = 4096;
@@ -40,7 +40,17 @@ impl FilterInput for StdIn {
                 force_read = false;
                 // Read stdin in self.buffer
                 self.buffer.copy_from_slice(&[0; BUFFER_SIZE]);
-                let len = self.stdin.read(&mut self.buffer)?;
+                let len = match self.stdin.read(&mut self.buffer) {
+                    Ok(n) => n,
+                    Err(e) => match e.kind() {
+                        ErrorKind::Interrupted => {
+                            continue;
+                        }
+                        _ => {
+                            return Err(e.into());
+                        }
+                    },
+                };
                 if len == 0 {
                     continue;
                 }
