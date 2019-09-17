@@ -36,6 +36,8 @@ impl FilterInput for StdIn {
         let mut force_read = false;
         loop {
             if force_read || self.input.is_empty() {
+                // Reset the flag
+                force_read = false;
                 // Read stdin in self.buffer
                 self.buffer.copy_from_slice(&[0; BUFFER_SIZE]);
                 let len = self.stdin.read(&mut self.buffer)?;
