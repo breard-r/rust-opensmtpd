@@ -60,8 +60,7 @@ impl OpenSmtpdAttributes {
         let events = if self
             .events
             .iter()
-            .find(|&e| e.to_string().to_lowercase().as_str() == "all")
-            .is_some()
+            .any(|e| e.to_string().to_lowercase().as_str() == "all")
         {
             let lst = [
                 "LinkAuth",
