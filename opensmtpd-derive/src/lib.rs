@@ -8,113 +8,12 @@
 
 extern crate proc_macro;
 
+mod attributes;
+
+use attributes::OpenSmtpdAttributes;
 use proc_macro::TokenStream;
 use quote::quote;
-use syn::parse::{Parse, ParseStream};
-use syn::punctuated::Punctuated;
-use syn::{parenthesized, parse_macro_input, ExprArray, Ident, ItemFn, Result, Token, TypePath};
-
-#[derive(Debug)]
-struct OpenSmtpdAttributes {
-    version: Ident,
-    subsystem: Ident,
-    events: Punctuated<Ident, Token![,]>,
-}
-
-impl Parse for OpenSmtpdAttributes {
-    fn parse(input: ParseStream) -> Result<Self> {
-        let version = input.parse()?;
-        let _: Token![,] = input.parse()?;
-        let subsystem = input.parse()?;
-        let _: Token![,] = input.parse()?;
-        let _match: Token![match] = input.parse()?;
-        let content;
-        let _ = parenthesized!(content in input);
-        let events = content.parse_terminated(Ident::parse)?;
-        Ok(OpenSmtpdAttributes {
-            version,
-            subsystem,
-            events,
-        })
-    }
-}
-
-impl OpenSmtpdAttributes {
-    fn get_version(&self) -> String {
-        format!(
-            "opensmtpd::entry::Version::{}",
-            self.version.to_string().to_uppercase()
-        )
-    }
-
-    fn get_subsystem(&self) -> String {
-        let subsystem = match self.subsystem.to_string().as_str() {
-            "smtp_in" => "SmtpIn",
-            "smtp_out" => "SmtpOut",
-            _ => "",
-        };
-        format!("opensmtpd::entry::Subsystem::{}", subsystem)
-    }
-
-    fn get_events(&self) -> String {
-        let events = if self
-            .events
-            .iter()
-            .any(|e| e.to_string().to_lowercase().as_str() == "all")
-        {
-            let lst = [
-                "LinkAuth",
-                "LinkConnect",
-                "LinkDisconnect",
-                "LinkIdentify",
-                "LinkReset",
-                "LinkTls",
-                "TxBegin",
-                "TxMail",
-                "TxRcpt",
-                "TxEnvelope",
-                "TxData",
-                "TxCommit",
-                "TxRollback",
-                "ProtocolClient",
-                "ProtocolServer",
-                "FilterResponse",
-                "Timeout",
-            ];
-            lst.iter()
-                .map(|e| format!("opensmtpd::entry::Event::{}", e))
-                .collect::<Vec<String>>()
-        } else {
-            self.events
-                .iter()
-                .map(|e| {
-                    let name = match e.to_string().as_str() {
-                        "link_auth" => "LinkAuth",
-                        "link_connect" => "LinkConnect",
-                        "link_disconnect" => "LinkDisconnect",
-                        "link_identify" => "LinkIdentify",
-                        "link_reset" => "LinkReset",
-                        "link_tls" => "LinkTls",
-                        "tx_begin" => "TxBegin",
-                        "tx_mail" => "TxMail",
-                        "tx_rcpt" => "TxRcpt",
-                        "tx_envelope" => "TxEnvelope",
-                        "tx_data" => "TxData",
-                        "tx_commit" => "TxCommit",
-                        "tx_rollback" => "TxRollback",
-                        "protocol_client" => "ProtocolClient",
-                        "protocol_server" => "ProtocolServer",
-                        "filter_response" => "FilterResponse",
-                        "timeout" => "Timeout",
-                        _ => "",
-                    };
-                    format!("opensmtpd::entry::Event::{}", name)
-                })
-                .collect::<Vec<String>>()
-        };
-        format!("[{}]", events.join(", "))
-    }
-}
+use syn::{parse_macro_input, ExprArray, ItemFn, TypePath};
 
 macro_rules! parse_item {
     ($item: expr, $type: ty) => {
