@@ -52,7 +52,7 @@ impl FilterInput for StdIn {
                     },
                 };
                 if len == 0 {
-                    continue;
+                    return Err(Error::new("Unable to read on stdin."));
                 }
                 // Put the buffer's content in self.input
                 self.input += match self.buffer.iter().position(|&x| x == 0) {
