@@ -6,8 +6,6 @@
 // option. This file may not be copied, modified, or distributed
 // except according to those terms.
 
-use crate::entry::Entry;
-use crate::event_handlers::EventHandler;
 use std::fmt;
 
 pub struct Error {
@@ -34,6 +32,18 @@ impl From<std::io::Error> for Error {
     }
 }
 
+impl From<std::string::String> for Error {
+    fn from(error: std::string::String) -> Self {
+        Error { message: error }
+    }
+}
+
+impl From<std::str::Utf8Error> for Error {
+    fn from(error: std::str::Utf8Error) -> Self {
+        Error::new(&format!("UTF8 error: {}", error))
+    }
+}
+
 impl From<log::SetLoggerError> for Error {
     fn from(error: log::SetLoggerError) -> Self {
         Error::new(&format!("Logger error: {}", error))
@@ -48,17 +58,5 @@ impl From<nom::Err<(&str, nom::error::ErrorKind)>> for Error {
             nom::Err::Failure(c) => format!("{:?}", c),
         };
         Error::new(&format!("Parsing error: {}", msg))
-    }
-}
-
-impl From<std::sync::mpsc::SendError<Entry>> for Error {
-    fn from(error: std::sync::mpsc::SendError<Entry>) -> Self {
-        Error::new(&format!("IO error: {}", error))
-    }
-}
-
-impl<T> From<std::sync::mpsc::SendError<EventHandler<T>>> for Error {
-    fn from(error: std::sync::mpsc::SendError<EventHandler<T>>) -> Self {
-        Error::new(&format!("IO error: {}", error))
     }
 }

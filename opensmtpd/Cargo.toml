@@ -1,6 +1,6 @@
 [package]
 name = "opensmtpd"
-version = "0.1.0"
+version = "0.2.0"
 authors = ["Rodolphe Bréard <rodolphe@what.tf>"]
 edition = "2018"
 description = "Interface for OpenSMTPD filters"
@@ -14,12 +14,12 @@ include = ["src/**/*", "Cargo.toml", "LICENSE-*.txt"]
 [dependencies]
 log = {version = "0.4", features = ["std"]}
 nom = "5.0"
-opensmtpd_derive = { path = "../opensmtpd-derive", version = "0.1" }
+opensmtpd_derive = { path = "../opensmtpd-derive", version = "0.2" }
 
 [[example]]
-name = "dummy"
-path = "examples/dummy.rs"
+name = "echo"
+path = "examples/echo.rs"
 
-[[example]]
-name = "counter"
-path = "examples/session_event_counter.rs"
+#[[example]]
+#name = "counter"
+#path = "examples/session_event_counter.rs"

@@ -6,6 +6,14 @@
 // option. This file may not be copied, modified, or distributed
 // except according to those terms.
 
-pub enum Response {
-    None,
+use crate::errors::Error;
+
+pub trait FilterOutput {
+    fn send(&mut self, msg: &str) -> Result<(), Error>;
 }
+
+mod null;
+mod stdout;
+
+pub use null::NullOutput;
+pub use stdout::{StdErr, StdOut};

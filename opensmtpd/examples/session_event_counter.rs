@@ -1,5 +1,4 @@
-use log::{info, Level};
-use opensmtpd::{handlers, report, Entry, SmtpIn, SmtpdLogger};
+use opensmtpd::{report, simple_filter};
 
 #[derive(Clone, Default)]
 struct MyContext {
@@ -13,6 +12,5 @@ fn on_report(ctx: &mut MyContext, entry: &Entry) {
 }
 
 fn main() {
-    let _ = SmtpdLogger::new().set_level(Level::Debug).init();
-    SmtpIn::new().event_handlers(handlers!(on_report)).run();
+    simple_filter!(vec![on_report]);
 }

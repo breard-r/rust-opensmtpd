@@ -8,31 +8,32 @@
 
 use crate::errors::Error;
 use nom::branch::alt;
-use nom::bytes::complete::{tag, take_till};
-use nom::character::complete::{digit1, hex_digit1, line_ending};
+use nom::bytes::streaming::{tag, take_till};
+use nom::character::streaming::{digit1, hex_digit1, line_ending};
 use nom::combinator::{map_res, value};
 use nom::multi::many0;
+use nom::Err::Incomplete;
 use nom::IResult;
 use std::str::FromStr;
 
-#[derive(Clone, Debug, PartialEq)]
-enum Version {
+#[derive(Clone, Debug, Eq, PartialEq)]
+pub enum Version {
     V1,
 }
 
-#[derive(Clone, Debug, PartialEq)]
+#[derive(Clone, Debug, Eq, PartialEq)]
 pub enum Kind {
     Report,
     Filter,
 }
 
-#[derive(Clone, Debug, PartialEq)]
+#[derive(Clone, Debug, Eq, PartialEq)]
 pub enum Subsystem {
     SmtpIn,
     SmtpOut,
 }
 
-#[derive(Clone, Debug, PartialEq)]
+#[derive(Clone, Debug, Eq, Hash, PartialEq)]
 pub enum Event {
     LinkAuth,
     LinkConnect,
@@ -114,16 +115,17 @@ pub enum Entry {
     V1Filter(V1Filter),
 }
 
-impl FromStr for Entry {
-    type Err = Error;
-
-    fn from_str(entry: &str) -> Result<Self, Self::Err> {
-        let (_, res) = parse_entry(entry)?;
-        Ok(res)
-    }
-}
-
 impl Entry {
+    pub fn new(entry: &str) -> Result<(String, Option<Self>), Error> {
+        match parse_entry(entry) {
+            Ok((remainder, entry)) => Ok((remainder.to_string(), Some(entry))),
+            Err(e) => match e {
+                Incomplete(_) => Ok((String::new(), None)),
+                _ => Err(e.into()),
+            },
+        }
+    }
+
     pub fn get_event(&self) -> Event {
         match self {
             Entry::V1Report(r) => r.event.to_owned(),
@@ -244,7 +246,7 @@ fn parse_v1_report(input: &str) -> IResult<&str, Entry> {
     let (input, _) = separator(input)?;
     let (input, session_id) = parse_session_id(input)?;
     let (input, params) = many0(parse_param)(input)?;
-    let _ = line_ending(input)?;
+    let (input, _) = line_ending(input)?;
     let report = V1Report {
         timestamp,
         subsystem,
@@ -266,7 +268,7 @@ fn parse_v1_filter(input: &str) -> IResult<&str, Entry> {
     let (input, _) = separator(input)?;
     let (input, token) = parse_token(input)?;
     let (input, params) = many0(parse_param)(input)?;
-    let _ = line_ending(input)?;
+    let (input, _) = line_ending(input)?;
     let filter = V1Filter {
         timestamp,
         subsystem,

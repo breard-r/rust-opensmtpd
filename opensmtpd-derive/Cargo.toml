@@ -1,6 +1,6 @@
 [package]
 name = "opensmtpd_derive"
-version = "0.1.0"
+version = "0.2.0"
 authors = ["Rodolphe Bréard <rodolphe@what.tf>"]
 edition = "2018"
 description = "Interface for OpenSMTPD filters"
@@ -15,5 +15,5 @@ include = ["src/**/*", "Cargo.toml", "LICENSE-*.txt"]
 proc-macro = true
 
 [dependencies]
-quote = "0.6"
-syn = { version = "0.15", features = ["full"] }
+quote = "1.0"
+syn = { version = "1.0", features = ["full", "extra-traits"] }
