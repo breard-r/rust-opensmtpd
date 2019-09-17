@@ -26,8 +26,8 @@ macro_rules! parse_item {
     };
 }
 
-#[proc_macro_attribute]
-pub fn report(attr: TokenStream, input: TokenStream) -> TokenStream {
+fn get_tokenstream(attr: TokenStream, input: TokenStream, type_str: &str) -> TokenStream {
+    let kind = parse_item!(type_str, TypePath);
     let attr = parse_macro_input!(attr as OpenSmtpdAttributes);
     let version = parse_item!(&attr.get_version(), TypePath);
     let subsystem = parse_item!(&attr.get_subsystem(), TypePath);
@@ -40,20 +40,30 @@ pub fn report(attr: TokenStream, input: TokenStream) -> TokenStream {
         fn #fn_name() -> opensmtpd::Handler {
             opensmtpd::Handler::new(
                 #version,
-                opensmtpd::entry::Kind::Report,
+                #kind,
                 #subsystem,
                 &#events,
-                |_output: &mut dyn opensmtpd::output::FilterOutput, entry: &opensmtpd::entry::Entry,| {
+                |_output: &mut dyn opensmtpd::output::FilterOutput, _entry: &opensmtpd::entry::Entry,| {
                     // TODO: look at `item.sig.output` and adapt the calling scheme.
                     // example: if no return, add `Ok(())`.
                     // https://docs.rs/syn/1.0.5/syn/struct.Signature.html
                     let inner_fn = |#fn_params| -> Result<(), String> {
                         #fn_body
                     };
-                    inner_fn(entry)
+                    inner_fn(_entry)
                 },
-                )
+            )
         }
     };
     output.into()
+}
+
+#[proc_macro_attribute]
+pub fn report(attr: TokenStream, input: TokenStream) -> TokenStream {
+    get_tokenstream(attr, input, "opensmtpd::entry::Kind::Report")
+}
+
+#[proc_macro_attribute]
+pub fn filter(attr: TokenStream, input: TokenStream) -> TokenStream {
+    get_tokenstream(attr, input, "opensmtpd::entry::Kind::Filter")
 }
