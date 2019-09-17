@@ -14,7 +14,9 @@ pub mod entry;
 pub mod input;
 pub mod output;
 
+use crate::entry::{Kind, Subsystem};
 use log;
+use std::collections::HashSet;
 use std::default::Default;
 
 pub use crate::errors::Error;
@@ -40,6 +42,32 @@ macro_rules! simple_filter_log_level {
             .set_level($log_level)
             .init();
         opensmtpd::Filter::<opensmtpd::input::StdIn, opensmtpd::output::StdOut>::default().set_handlers(&handlers).register_events().run();
+    };
+}
+
+macro_rules! fatal_error {
+    ($error: ident) => {
+        log::error!("Error: {}", $error);
+        std::process::exit(1);
+    };
+}
+
+macro_rules! insert_events {
+    ($handler: ident, $set: ident) => {{
+        for e in $handler.events.iter() {
+            $set.insert(e);
+        }
+    }};
+}
+
+macro_rules! register_events {
+    ($output: expr, $set: ident, $kind: expr, $subsystem: expr) => {
+        for e in $set.iter() {
+            let msg = format!("register|{}|{}|{}", $kind, $subsystem, e.to_string());
+            if let Err(e) = $output.send(&msg) {
+                fatal_error!(e);
+            };
+        }
     };
 }
 
@@ -78,7 +106,26 @@ where
     }
 
     pub fn register_events(&mut self) -> &mut Self {
-        // TODO: use self.output to register events
+        let mut report_smtp_in = HashSet::new();
+        let mut report_smtp_out = HashSet::new();
+        let mut filter_smtp_in = HashSet::new();
+        let mut filter_smtp_out = HashSet::new();
+        for h in self.handlers.iter() {
+            match h.kind {
+                Kind::Report => match h.subsystem {
+                    Subsystem::SmtpIn => insert_events!(h, report_smtp_in),
+                    Subsystem::SmtpOut => insert_events!(h, report_smtp_out),
+                },
+                Kind::Filter => match h.subsystem {
+                    Subsystem::SmtpIn => insert_events!(h, filter_smtp_in),
+                    Subsystem::SmtpOut => insert_events!(h, filter_smtp_out),
+                },
+            };
+        }
+        register_events!(self.output, report_smtp_in, "report", "smtp-in");
+        register_events!(self.output, report_smtp_out, "report", "smtp-out");
+        register_events!(self.output, filter_smtp_in, "filter", "smtp-in");
+        register_events!(self.output, filter_smtp_out, "filter", "smtp-out");
         self
     }
 
@@ -97,8 +144,7 @@ where
                     }
                 }
                 Err(e) => {
-                    log::error!("Error: {}", e);
-                    std::process::exit(1);
+                    fatal_error!(e);
                 }
             };
         }

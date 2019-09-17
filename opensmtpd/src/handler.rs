@@ -29,9 +29,9 @@ type Callback = fn(&mut dyn FilterOutput, &Entry) -> Result<(), String>;
 #[derive(Clone)]
 pub struct Handler {
     version: Version,
-    kind: Kind,
-    subsystem: Subsystem,
-    events: HashSet<Event>,
+    pub(crate) kind: Kind,
+    pub(crate) subsystem: Subsystem,
+    pub(crate) events: HashSet<Event>,
     action: Callback,
 }
 
