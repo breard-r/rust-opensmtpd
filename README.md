@@ -9,8 +9,8 @@ This is a work in progress, the API is **not** stabilized yet.
 
 - [x] Reports
 - [ ] Filters
-- [ ] Filter-level context
-- [ ] Session-level context
+- [x] Filter-level context
+- [x] Session-level context
 
 
 [OpenSMTPD]: https://www.opensmtpd.org/

@@ -12,36 +12,36 @@ use crate::output::FilterOutput;
 use std::collections::HashSet;
 
 macro_rules! handle {
-    ($self: ident, $obj: ident, $version: expr, $kind: expr, $entry: ident, $output: ident) => {{
+    ($self: ident, $obj: ident, $version: expr, $kind: expr, $entry: ident, $output: ident, $session_ctx: ident, $filter_ctx: ident) => {{
         if $self.version == $version
             && $self.kind == $kind
             && $self.subsystem == $obj.subsystem
             && $self.events.contains(&$obj.event)
         {
-            ($self.action)($output, $entry)?;
+            ($self.action)($output, $entry, $session_ctx, $filter_ctx)?;
         }
         Ok(())
     }};
 }
 
-type Callback = fn(&mut dyn FilterOutput, &Entry) -> Result<(), String>;
+type Callback<S, F> = fn(&mut dyn FilterOutput, &Entry, &mut S, &mut F) -> Result<(), String>;
 
 #[derive(Clone)]
-pub struct Handler {
+pub struct Handler<S, F> {
     version: Version,
     pub(crate) kind: Kind,
     pub(crate) subsystem: Subsystem,
     pub(crate) events: HashSet<Event>,
-    action: Callback,
+    action: Callback<S, F>,
 }
 
-impl Handler {
+impl<S, F> Handler<S, F> {
     pub fn new(
         version: Version,
         kind: Kind,
         subsystem: Subsystem,
         events: &[Event],
-        action: Callback,
+        action: Callback<S, F>,
     ) -> Self {
         Handler {
             version,
@@ -52,14 +52,34 @@ impl Handler {
         }
     }
 
-    pub fn send(&self, entry: &Entry, output: &mut dyn FilterOutput) -> Result<(), Error> {
+    pub fn send(
+        &self,
+        entry: &Entry,
+        output: &mut dyn FilterOutput,
+        session_ctx: &mut S,
+        filter_ctx: &mut F,
+    ) -> Result<(), Error> {
         match entry {
-            Entry::V1Report(report) => {
-                handle!(self, report, Version::V1, Kind::Report, entry, output)
-            }
-            Entry::V1Filter(filter) => {
-                handle!(self, filter, Version::V1, Kind::Filter, entry, output)
-            }
+            Entry::V1Report(report) => handle!(
+                self,
+                report,
+                Version::V1,
+                Kind::Report,
+                entry,
+                output,
+                session_ctx,
+                filter_ctx
+            ),
+            Entry::V1Filter(filter) => handle!(
+                self,
+                filter,
+                Version::V1,
+                Kind::Filter,
+                entry,
+                output,
+                session_ctx,
+                filter_ctx
+            ),
         }
     }
 }

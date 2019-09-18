@@ -16,6 +16,9 @@ use nom::Err::Incomplete;
 use nom::IResult;
 use std::str::FromStr;
 
+pub type SessionId = u64;
+pub type Token = u64;
+
 #[derive(Clone, Debug, Eq, PartialEq)]
 pub enum Version {
     V1,
@@ -133,7 +136,7 @@ impl Entry {
         }
     }
 
-    pub fn get_session_id(&self) -> u64 {
+    pub fn get_session_id(&self) -> SessionId {
         match self {
             Entry::V1Report(r) => r.session_id,
             Entry::V1Filter(f) => f.session_id,
@@ -153,7 +156,7 @@ pub struct V1Report {
     pub timestamp: TimeVal,
     pub subsystem: Subsystem,
     pub event: Event,
-    pub session_id: u64,
+    pub session_id: SessionId,
     pub params: Vec<String>,
 }
 
@@ -162,8 +165,8 @@ pub struct V1Filter {
     pub timestamp: TimeVal,
     pub subsystem: Subsystem,
     pub event: Event,
-    pub session_id: u64,
-    pub token: u64,
+    pub session_id: SessionId,
+    pub token: Token,
     pub params: Vec<String>,
 }
 
@@ -219,12 +222,12 @@ fn parse_event(input: &str) -> IResult<&str, Event> {
     ))(input)
 }
 
-fn parse_token(input: &str) -> IResult<&str, u64> {
-    map_res(hex_digit1, |s: &str| u64::from_str_radix(s, 16))(input)
+fn parse_token(input: &str) -> IResult<&str, Token> {
+    map_res(hex_digit1, |s: &str| Token::from_str_radix(s, 16))(input)
 }
 
-fn parse_session_id(input: &str) -> IResult<&str, u64> {
-    map_res(hex_digit1, |s: &str| u64::from_str_radix(s, 16))(input)
+fn parse_session_id(input: &str) -> IResult<&str, SessionId> {
+    map_res(hex_digit1, |s: &str| SessionId::from_str_radix(s, 16))(input)
 }
 
 fn parse_param(input: &str) -> IResult<&str, String> {

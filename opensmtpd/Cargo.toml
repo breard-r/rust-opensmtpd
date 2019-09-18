@@ -17,9 +17,13 @@ nom = "5.0"
 opensmtpd_derive = { path = "../opensmtpd-derive", version = "0.2" }
 
 [[example]]
+name = "hello"
+path = "examples/hello.rs"
+
+[[example]]
 name = "echo"
 path = "examples/echo.rs"
 
 [[example]]
 name = "counter"
-path = "examples/session_event_counter.rs"
+path = "examples/report_counter.rs"

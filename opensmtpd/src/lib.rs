@@ -14,15 +14,50 @@ pub mod entry;
 pub mod input;
 pub mod output;
 
-use crate::entry::{Kind, Subsystem};
+use crate::entry::{Kind, SessionId, Subsystem};
 use log;
-use std::collections::HashSet;
+use std::collections::{HashMap, HashSet};
 use std::default::Default;
 
 pub use crate::errors::Error;
 pub use crate::handler::Handler;
 pub use crate::logger::SmtpdLogger;
 pub use opensmtpd_derive::report;
+
+#[macro_export]
+macro_rules! register_contexts {
+    ($context: ty) => {
+        opensmtpd::register_contexts!($context, $context);
+    };
+    ($session_context: ty, $filter_context: ty) => {
+        type OpenSmtpdFilterContextType = $filter_context;
+        type OpenSmtpdSessionContextType = $session_context;
+    };
+}
+
+#[macro_export]
+macro_rules! register_filter_context_only {
+    ($context: ty) => {
+        type OpenSmtpdFilterContextType = $context;
+        type OpenSmtpdSessionContextType = opensmtpd::NoContext;
+    };
+}
+
+#[macro_export]
+macro_rules! register_session_context_only {
+    ($context: ty) => {
+        type OpenSmtpdFilterContextType = opensmtpd::NoContext;
+        type OpenSmtpdSessionContextType = $context;
+    };
+}
+
+#[macro_export]
+macro_rules! register_no_context {
+    () => {
+        type OpenSmtpdFilterContextType = opensmtpd::NoContext;
+        type OpenSmtpdSessionContextType = opensmtpd::NoContext;
+    };
+}
 
 #[macro_export]
 macro_rules! simple_filter {
@@ -49,12 +84,17 @@ macro_rules! simple_filter {
         let handlers = ($handlers)
             .iter()
             .map(|f| f())
-            .collect::<Vec<opensmtpd::Handler>>();
+            .collect::<Vec<opensmtpd::Handler<$sesion_ctx, $filter_ctx>>>();
         let _ = opensmtpd::SmtpdLogger::new().set_level($log_level).init();
-        opensmtpd::Filter::<opensmtpd::input::StdIn, opensmtpd::output::StdOut>::default()
-            .set_handlers(handlers.as_slice())
-            .register_events()
-            .run();
+        opensmtpd::Filter::<
+            opensmtpd::input::StdIn,
+            opensmtpd::output::StdOut,
+            $sesion_ctx,
+            $filter_ctx,
+        >::default()
+        .set_handlers(handlers.as_slice())
+        .register_events()
+        .run();
     };
 }
 
@@ -84,39 +124,49 @@ macro_rules! register_events {
     };
 }
 
-#[derive(Default)]
+#[derive(Clone, Default)]
 pub struct NoContext;
 
-pub struct Filter<I, O>
+pub struct Filter<I, O, S, F>
 where
     I: crate::input::FilterInput + Default,
     O: crate::output::FilterOutput + Default,
+    S: Default,
+    F: Default,
 {
     input: I,
     output: O,
-    handlers: Vec<Handler>,
+    session_ctx: HashMap<SessionId, S>,
+    filter_ctx: F,
+    handlers: Vec<Handler<S, F>>,
 }
 
-impl<I, O> Default for Filter<I, O>
+impl<I, O, S, F> Default for Filter<I, O, S, F>
 where
     I: crate::input::FilterInput + Default,
     O: crate::output::FilterOutput + Default,
+    S: Default,
+    F: Default,
 {
     fn default() -> Self {
         Filter {
             input: I::default(),
             output: O::default(),
+            session_ctx: HashMap::new(),
+            filter_ctx: F::default(),
             handlers: Vec::new(),
         }
     }
 }
 
-impl<I, O> Filter<I, O>
+impl<I, O, S, F> Filter<I, O, S, F>
 where
     I: crate::input::FilterInput + Default,
     O: crate::output::FilterOutput + Default,
+    S: Clone + Default,
+    F: Clone + Default,
 {
-    pub fn set_handlers(&mut self, handlers: &[Handler]) -> &mut Self {
+    pub fn set_handlers(&mut self, handlers: &[Handler<S, F>]) -> &mut Self {
         self.handlers = handlers.to_vec();
         self
     }
@@ -150,13 +200,29 @@ where
             match self.input.next() {
                 Ok(entry) => {
                     log::debug!("{:?}", entry);
+                    let session_id = entry.get_session_id();
+                    let mut session_ctx = match self.session_ctx.get_mut(&session_id) {
+                        Some(c) => c,
+                        None => {
+                            self.session_ctx.insert(session_id, S::default());
+                            self.session_ctx.get_mut(&session_id).unwrap()
+                        }
+                    };
                     for h in self.handlers.iter() {
-                        match h.send(&entry, &mut self.output) {
+                        match h.send(
+                            &entry,
+                            &mut self.output,
+                            &mut session_ctx,
+                            &mut self.filter_ctx,
+                        ) {
                             Ok(_) => {}
                             Err(e) => {
                                 log::warn!("Warning: {}", e);
                             }
                         };
+                    }
+                    if entry.is_disconnect() {
+                        self.session_ctx.remove(&session_id);
                     }
                 }
                 Err(e) => {
