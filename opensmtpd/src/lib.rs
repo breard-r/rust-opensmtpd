@@ -26,22 +26,35 @@ pub use opensmtpd_derive::report;
 
 #[macro_export]
 macro_rules! simple_filter {
-    ($( $x:expr ),*) => {
-        opensmtpd::simple_filter_log_level!(log::Level::Info $(,$x)*);
+    ($handlers: expr) => {
+        opensmtpd::simple_filter!(
+            log::Level::Info,
+            opensmtpd::NoContext,
+            opensmtpd::NoContext,
+            $handlers
+        );
     };
-}
-
-#[macro_export]
-macro_rules! simple_filter_log_level {
-    ($log_level: expr, $( $x:expr ),*) => {
-        let mut handlers = Vec::new();
-        $(
-            handlers.push(($x)());
-        )*;
-        let _ = opensmtpd::SmtpdLogger::new()
-            .set_level($log_level)
-            .init();
-        opensmtpd::Filter::<opensmtpd::input::StdIn, opensmtpd::output::StdOut>::default().set_handlers(&handlers).register_events().run();
+    ($filter_ctx: ty, $handlers: expr) => {
+        opensmtpd::simple_filter!(
+            log::Level::Info,
+            opensmtpd::NoContext,
+            $filter_ctx,
+            $handlers
+        );
+    };
+    ($sesion_ctx: ty, $filter_ctx: ty, $handlers: expr) => {
+        opensmtpd::simple_filter!(log::Level::Info, $sesion_ctx, $filter_ctx, $handlers);
+    };
+    ($log_level: path, $sesion_ctx: ty, $filter_ctx: ty, $handlers: expr) => {
+        let handlers = ($handlers)
+            .iter()
+            .map(|f| f())
+            .collect::<Vec<opensmtpd::Handler>>();
+        let _ = opensmtpd::SmtpdLogger::new().set_level($log_level).init();
+        opensmtpd::Filter::<opensmtpd::input::StdIn, opensmtpd::output::StdOut>::default()
+            .set_handlers(handlers.as_slice())
+            .register_events()
+            .run();
     };
 }
 
@@ -70,6 +83,9 @@ macro_rules! register_events {
         }
     };
 }
+
+#[derive(Default)]
+pub struct NoContext;
 
 pub struct Filter<I, O>
 where

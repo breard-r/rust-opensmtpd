@@ -20,6 +20,6 @@ opensmtpd_derive = { path = "../opensmtpd-derive", version = "0.2" }
 name = "echo"
 path = "examples/echo.rs"
 
-#[[example]]
-#name = "counter"
-#path = "examples/session_event_counter.rs"
+[[example]]
+name = "counter"
+path = "examples/session_event_counter.rs"
