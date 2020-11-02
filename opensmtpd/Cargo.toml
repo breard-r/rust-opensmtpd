@@ -13,7 +13,7 @@ include = ["src/**/*", "Cargo.toml", "LICENSE-*.txt"]
 
 [dependencies]
 log = {version = "0.4", features = ["std"]}
-nom = "5.0"
+nom = "6.0"
 opensmtpd_derive = { path = "../opensmtpd-derive", version = "0.2" }
 
 [[example]]
