@@ -39,7 +39,7 @@ impl Filter for MyCounter {
 }
 
 fn main() {
-    TermLogger::init(LevelFilter::Debug, Config::default(), TerminalMode::Mixed).unwrap();
+    TermLogger::init(LevelFilter::Debug, Config::default(), TerminalMode::Stderr).unwrap();
     let mut my_counter: MyCounter = Default::default();
     run_filter(&mut my_counter);
 }
