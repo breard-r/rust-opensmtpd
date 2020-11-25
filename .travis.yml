@@ -1,0 +1,23 @@
+language: rust
+
+sudo: true
+
+rust:
+    - "1.41.1"
+    - "1.43.0"
+    - "1.43.1"
+    - "1.44.1"
+    - "1.45.2"
+    - "1.46.0"
+    - "1.47.0"
+    - "1.48.0"
+    - "stable"
+    - "beta"
+    - "nightly"
+
+jobs:
+    allow_failures:
+        - rust: "nightly"
+
+script:
+    - cargo test
