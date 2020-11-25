@@ -1,0 +1,6 @@
+config|smtpd-version|6.6.1
+config|smtp-session-timeout|300
+config|subsystem|smtp-in
+config|ready
+report|0.5|1576146008.006099|smtp-in|link-connect|7641df9771b4ed00|mail.openbsd.org|pass|199.185.178.25:33174|45.77.67.80:25
+report|0.5|1576147242.200225|smtp-in|link-disconnect|7641dfb3798eb5bf

@@ -1,0 +1,4 @@
+config|smtpd-version|6.6.1
+config|smtp-session-timeout|300
+config|subsystem|smtp-in
+config|ready
