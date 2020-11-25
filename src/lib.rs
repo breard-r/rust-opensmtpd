@@ -1,3 +1,47 @@
+//! [![Rust-OpenSMTPD on crates.io](https://img.shields.io/crates/v/opensmtpd.svg)](https://crates.io/crates/opensmtpd)
+//! [![Rust-OpenSMTPD on docs.rs](https://docs.rs/opensmtpd/badge.svg)](https://docs.rs/opensmtpd/)
+//! ![License: MIT or Apache-2.0](https://img.shields.io/crates/l/opensmtpd)
+//!
+//! # Writing a filter for OpenSMTPD
+//!
+//! The first step is to define an object (most of the time you want
+//! a struct) the implements the [`Filter`] trait. All of this
+//! trait's methods have an empty default implementation, so you only
+//! have to implement the ones that matters to you. For each method
+//! you implement, you must use the [`register`] macro in order to
+//! ask OpenSMTPD to send you the corresponding events and filter
+//! requests.
+//!
+//! The second and last step is to call the [`run_filter`] function
+//! with a mutable reference of your filter object.
+//!
+//! # Examples
+//!
+//! The following filter increments a variable every time a client
+//! disconnects.
+//!
+//! ```
+//! use opensmtpd::{register, run_filter, Filter, ReportEntry};
+//!
+//! struct MyCounter {
+//!     nb: u64,
+//! }
+//!
+//! impl Filter for MyCounter {
+//!     register!(has_report_link_disconnect);
+//!     fn on_report_link_disconnect(&mut self, _entry: &ReportEntry) {
+//!         self.nb + 1;
+//!     }
+//! }
+//!
+//! fn main() {
+//!     let mut my_counter = MyCounter { nb: 0, };
+//!     run_filter(&mut my_counter);
+//! }
+//! ```
+//!
+//! More examples can be found in the [examples directory](https://github.com/breard-r/rust-opensmtpd/tree/main/examples).
+
 mod data_structures;
 mod filter;
 mod io;
