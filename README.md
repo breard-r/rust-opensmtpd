@@ -16,4 +16,4 @@ Read the documentation on [docs.rs](https://docs.rs/opensmtpd/).
 
 # Requirements
 
-Rust 1.41 or newer.
+Rust 1.43 or newer.
