@@ -321,4 +321,33 @@ mod tests {
             Address::Ip(_) => assert!(false),
         };
     }
+
+    #[test]
+    fn test_valid_parse_filter_auth() {
+        let test_vectors = vec![
+            ("|derp\n", "derp"),
+            ("|derp.derpson@example.com\r\n", "derp.derpson@example.com"),
+        ];
+        for (test, ref_auth) in test_vectors {
+            let res = parse_filter_auth(test.as_bytes());
+            assert!(res.is_ok());
+            let (input, auth) = res.unwrap();
+            assert_eq!(input, b"");
+            assert_eq!(auth, ref_auth.to_string());
+        }
+    }
+
+    #[test]
+    fn test_invalid_parse_filter_auth() {
+        let test_vectors = vec![
+            "|\n",
+            "|\r\n",
+            "|derp",
+            "|derp|derpson\n",
+        ];
+        for test in test_vectors {
+            let res = parse_filter_auth(test.as_bytes());
+            assert!(!res.is_ok());
+        }
+    }
 }
