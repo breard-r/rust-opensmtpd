@@ -43,6 +43,12 @@ pub trait Filter {
         return false;
     }
 
+    fn on_filter_data_line(&mut self, _entry: &FilterEntry, _data_line: &[u8]) {}
+    #[doc(hidden)]
+    fn has_filter_data_line(&self) -> bool {
+        return false;
+    }
+
     fn on_filter_ehlo(&mut self, _entry: &FilterEntry, _identity: &str) -> FilterResponse {
         FilterResponse::Proceed
     }

@@ -1,6 +1,6 @@
 use super::{
-    is_parameter_char, parse_data_structure, parse_delimiter, parse_eol, parse_string_parameter,
-    parse_usize,
+    is_body_char, is_parameter_char, parse_data_structure, parse_delimiter, parse_eol,
+    parse_string_parameter, parse_usize,
 };
 use crate::{Address, AuthResult, FilterKind, FilterPhase, MailResult, Method};
 use nom::branch::alt;
@@ -30,6 +30,13 @@ pub(crate) fn parse_filter_connect(
     let (input, dest) = parse_address(input)?;
     let (input, _) = parse_eol(input)?;
     Ok((input, (rdns, fcrdns, src, dest)))
+}
+
+pub(crate) fn parse_filter_data_line(input: &[u8]) -> IResult<&[u8], &[u8]> {
+    let (input, _) = parse_delimiter(input)?;
+    let (input, s) = take_while1(is_body_char)(input)?;
+    let (input, _) = parse_eol(input)?;
+    Ok((input, s))
 }
 
 pub(crate) fn parse_filter_ehlo(input: &[u8]) -> IResult<&[u8], String> {

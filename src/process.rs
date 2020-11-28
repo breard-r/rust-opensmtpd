@@ -1,7 +1,7 @@
 use crate::parsers::entry::{parse_entry, EntryOption};
 use crate::parsers::parameters::{
-    parse_filter_auth, parse_filter_connect, parse_filter_ehlo, parse_filter_helo,
-    parse_filter_mail_from, parse_filter_rcpt_to, parse_filter_starttls,
+    parse_filter_auth, parse_filter_connect, parse_filter_data_line, parse_filter_ehlo,
+    parse_filter_helo, parse_filter_mail_from, parse_filter_rcpt_to, parse_filter_starttls,
     parse_report_filter_report, parse_report_filter_response, parse_report_link_auth,
     parse_report_link_connect, parse_report_link_greeting, parse_report_link_identify,
     parse_report_link_tls, parse_report_protocol_client, parse_report_protocol_server,
@@ -114,7 +114,11 @@ macro_rules! handle_filters {
                 Some($obj.on_filter_connect(&$f, &rdns, &fcrdns, &src, &dest))
             }
             FilterPhase::Data => Some($obj.on_filter_data(&$f)),
-            FilterPhase::DataLine => None,
+            FilterPhase::DataLine => {
+                let (_, data_line) = parse_filter_data_line($input).map_err(|e| e.to_string())?;
+                $obj.on_filter_data_line(&$f, &data_line);
+                None
+            }
             FilterPhase::Ehlo => {
                 let (_, identity) = parse_filter_ehlo($input).map_err(|e| e.to_string())?;
                 Some($obj.on_filter_ehlo(&$f, &identity))
@@ -139,12 +143,6 @@ macro_rules! handle_filters {
     };
 }
 
-macro_rules! handle_data_line {
-    ($obj: ident, $f: ident, $input: ident) => {{
-        // TODO
-    }};
-}
-
 pub(crate) fn line<T>(user_object: &mut T, input: &[u8]) -> Result<(), String>
 where
     T: Filter,
@@ -162,7 +160,6 @@ where
                 );
             };
         }
-        EntryOption::DataLine(l) => handle_data_line!(user_object, l, input),
     };
     Ok(())
 }

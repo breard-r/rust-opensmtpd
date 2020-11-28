@@ -43,12 +43,14 @@
 //!
 //! More examples can be found in the [examples directory](https://github.com/breard-r/rust-opensmtpd/tree/main/examples).
 
+mod data_line;
 mod data_structures;
 mod filter;
 mod io;
 mod parsers;
 mod process;
 
+pub use crate::data_line::return_data_line;
 pub use crate::data_structures::address::Address;
 pub use crate::data_structures::auth_result::AuthResult;
 pub use crate::data_structures::event::Event;

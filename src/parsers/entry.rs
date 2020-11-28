@@ -26,22 +26,13 @@ pub struct FilterEntry {
     pub token: String,
 }
 
-pub struct DataLineEntry {
-    pub session_id: String,
-    pub token: String,
-}
-
 pub(crate) enum EntryOption {
     Report(ReportEntry),
     Filter(FilterEntry),
-    DataLine(DataLineEntry),
 }
 
 pub(crate) fn parse_entry(input: &[u8]) -> IResult<&[u8], EntryOption> {
-    let (input, entry) = alt((
-        parse_report_entry_meta,
-        alt((parse_filter_entry_meta, parse_data_line_entry_meta)),
-    ))(input)?;
+    let (input, entry) = alt((parse_report_entry_meta, parse_filter_entry_meta))(input)?;
     Ok((input, entry))
 }
 
@@ -57,13 +48,6 @@ fn parse_filter_entry_meta(input: &[u8]) -> IResult<&[u8], EntryOption> {
     let (input, _) = parse_delimiter(input)?;
     let (input, entry) = parse_filter_entry(input)?;
     Ok((input, EntryOption::Filter(entry)))
-}
-
-fn parse_data_line_entry_meta(input: &[u8]) -> IResult<&[u8], EntryOption> {
-    let (input, _) = tag("filter-dataline")(input)?;
-    let (input, _) = parse_delimiter(input)?;
-    let (input, data_line) = parse_data_line_entry(input)?;
-    Ok((input, EntryOption::DataLine(data_line)))
 }
 
 fn parse_report_entry(input: &[u8]) -> IResult<&[u8], ReportEntry> {
@@ -106,14 +90,6 @@ fn parse_filter_entry(input: &[u8]) -> IResult<&[u8], FilterEntry> {
         session_id,
         token,
     };
-    Ok((input, entry))
-}
-
-fn parse_data_line_entry(input: &[u8]) -> IResult<&[u8], DataLineEntry> {
-    let (input, session_id) = parse_string_parameter(input)?;
-    let (input, _) = parse_delimiter(input)?;
-    let (input, token) = parse_string_parameter(input)?;
-    let entry = DataLineEntry { session_id, token };
     Ok((input, entry))
 }
 
