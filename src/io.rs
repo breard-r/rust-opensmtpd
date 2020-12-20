@@ -28,7 +28,7 @@ fn do_read_stdin(tx: &Sender<Vec<u8>>) -> Result<(), String> {
         if len == 0 {
             return Err(String::from("unable to read on stdin"));
         }
-        line_buffer.extend_from_slice(&read_buffer);
+        line_buffer.extend_from_slice(&read_buffer[..len]);
         loop {
             match line_buffer.iter().position(|i| *i == b'\n') {
                 Some(id) => {
