@@ -1,6 +1,6 @@
 [package]
 name = "opensmtpd"
-version = "0.3.0"
+version = "0.4.0"
 authors = ["Rodolphe Bréard <rodolphe@what.tf>"]
 edition = "2018"
 description = "Interface for OpenSMTPD filters"
@@ -14,7 +14,7 @@ include = ["src/**/*", "Cargo.toml", "../LICENSE-*.txt"]
 [dependencies]
 log = "0.4"
 nom = "6.0"
-opensmtpd_derive = { version = "0.3", path = "../opensmtpd-derive" }
+opensmtpd_derive = { version = "0.4", path = "../opensmtpd-derive" }
 pretty-hex = "0.2"
 
 [dev-dependencies]
