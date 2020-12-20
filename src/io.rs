@@ -34,6 +34,7 @@ fn do_read_stdin(tx: &Sender<Vec<u8>>) -> Result<(), String> {
                     let pos = id + 1;
                     let mut line = Vec::with_capacity(pos);
                     line.extend_from_slice(&line_buffer[..pos]);
+                    log::trace!("new line: {:?}", &line);
                     tx.send(line).unwrap();
                     line_buffer.drain(..pos);
                 }
