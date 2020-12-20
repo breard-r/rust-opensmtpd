@@ -127,6 +127,7 @@ macro_rules! handshake_register {
     ($obj: ident, $func: ident, $subsystem: expr, $type: expr, $name: expr) => {
         if $obj.$func() {
             println!("register|{}|{}|{}", $type, $subsystem.to_string(), $name);
+            log::trace!("{} {} for {} registered", $type, $name, $subsystem.to_string());
         }
     };
 }
@@ -194,4 +195,5 @@ where
 
     // Ready
     println!("register|ready");
+    log::trace!("register ready");
 }
