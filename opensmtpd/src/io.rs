@@ -29,20 +29,13 @@ fn do_read_stdin(tx: &Sender<Vec<u8>>) -> Result<(), String> {
             return Err(String::from("unable to read on stdin"));
         }
         line_buffer.extend_from_slice(&read_buffer[..len]);
-        loop {
-            match line_buffer.iter().position(|i| *i == b'\n') {
-                Some(id) => {
-                    let pos = id + 1;
-                    let mut line = Vec::with_capacity(pos);
-                    line.extend_from_slice(&line_buffer[..pos]);
-                    log::trace!("new line:{}", get_pretty_hex(&line));
-                    tx.send(line).unwrap();
-                    line_buffer.drain(..pos);
-                }
-                None => {
-                    break;
-                }
-            };
+        while let Some(id) = line_buffer.iter().position(|i| *i == b'\n') {
+            let pos = id + 1;
+            let mut line = Vec::with_capacity(pos);
+            line.extend_from_slice(&line_buffer[..pos]);
+            log::trace!("new line:{}", get_pretty_hex(&line));
+            tx.send(line).unwrap();
+            line_buffer.drain(..pos);
         }
     }
 }
