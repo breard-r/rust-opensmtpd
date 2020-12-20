@@ -135,6 +135,63 @@ fn handshake_reply<T>(obj: &mut T, ss: SubSystem)
 where
     T: Filter,
 {
+    // Filters
+    handshake_register!(obj, has_filter_auth, ss, "report", "auth");
+    handshake_register!(obj, has_filter_commit, ss, "report", "commit");
+    handshake_register!(obj, has_filter_connect, ss, "report", "connect");
+    handshake_register!(obj, has_filter_data, ss, "report", "data");
+    handshake_register!(obj, has_filter_data_line, ss, "report", "data-line");
+    handshake_register!(obj, has_filter_ehlo, ss, "report", "ehlo");
+    handshake_register!(obj, has_filter_helo, ss, "report", "helo");
+    handshake_register!(obj, has_filter_mail_from, ss, "report", "mail-from");
+    handshake_register!(obj, has_filter_rcpt_to, ss, "report", "rcpt-to");
+    handshake_register!(obj, has_filter_starttls, ss, "report", "starttls");
+
+    // Reports
+    handshake_register!(obj, has_report_link_auth, ss, "report", "link-auth");
     handshake_register!(obj, has_report_link_connect, ss, "report", "link-connect");
+    handshake_register!(
+        obj,
+        has_report_link_disconnect,
+        ss,
+        "report",
+        "link-disconnect"
+    );
+    handshake_register!(obj, has_report_link_greeting, ss, "report", "link-greeting");
+    handshake_register!(obj, has_report_link_identify, ss, "report", "link-identify");
+    handshake_register!(obj, has_report_link_tls, ss, "report", "link-tls");
+    handshake_register!(obj, has_report_tx_begin, ss, "report", "tx-begin");
+    handshake_register!(obj, has_report_tx_mail, ss, "report", "tx-mail");
+    handshake_register!(obj, has_report_tx_reset, ss, "report", "tx-reset");
+    handshake_register!(obj, has_report_tx_rcpt, ss, "report", "tx-rcpt");
+    handshake_register!(obj, has_report_tx_envelope, ss, "report", "tx-envelope");
+    handshake_register!(obj, has_report_tx_data, ss, "report", "tx-data");
+    handshake_register!(obj, has_report_tx_commit, ss, "report", "tx-commit");
+    handshake_register!(obj, has_report_tx_rollback, ss, "report", "tx-rollback");
+    handshake_register!(
+        obj,
+        has_report_protocol_client,
+        ss,
+        "report",
+        "protocol-client"
+    );
+    handshake_register!(
+        obj,
+        has_report_protocol_server,
+        ss,
+        "report",
+        "protocol-server"
+    );
+    handshake_register!(
+        obj,
+        has_report_filter_response,
+        ss,
+        "report",
+        "filter-response"
+    );
+    handshake_register!(obj, has_report_filter_report, ss, "report", "filter-report");
+    handshake_register!(obj, has_report_timeout, ss, "report", "timeout");
+
+    // Ready
     println!("register|ready");
 }
