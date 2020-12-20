@@ -7,7 +7,7 @@ description = "Interface for OpenSMTPD filters"
 keywords = ["opensmtpd", "filter", "mail"]
 documentation = "https://docs.rs/opensmtpd-derive/"
 repository = "https://github.com/breard-r/rust-opensmtpd"
-readme = "README.md"
+readme = "../README.md"
 license = "MIT OR Apache-2.0"
 include = ["src/**/*", "Cargo.toml", "../LICENSE-*.txt"]
 
