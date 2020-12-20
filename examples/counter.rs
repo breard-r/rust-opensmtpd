@@ -1,6 +1,9 @@
 use log;
 use opensmtpd::{register, run_filter, Address, Filter, ReportEntry};
-use simplelog::{Config, LevelFilter, TermLogger, TerminalMode};
+use simplelog::{Config, LevelFilter, WriteLogger};
+use std::fs::File;
+
+pub const DEFAULT_LOG_FILE: &str = "/tmp/counter.log";
 
 #[derive(Default)]
 struct MyCounter {
@@ -39,7 +42,13 @@ impl Filter for MyCounter {
 }
 
 fn main() {
-    TermLogger::init(LevelFilter::Debug, Config::default(), TerminalMode::Stderr).unwrap();
+    let log_file = std::env::var("LOG_FILE").unwrap_or(String::from(DEFAULT_LOG_FILE));
+    WriteLogger::init(
+        LevelFilter::Info,
+        Config::default(),
+        File::create(&log_file).unwrap(),
+    )
+    .unwrap();
     let mut my_counter: MyCounter = Default::default();
     run_filter(&mut my_counter);
 }
