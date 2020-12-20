@@ -1,0 +1,20 @@
+[package]
+name = "opensmtpd_derive"
+version = "0.3.0"
+authors = ["Rodolphe Bréard <rodolphe@what.tf>"]
+edition = "2018"
+description = "Interface for OpenSMTPD filters"
+keywords = ["opensmtpd", "filter", "mail"]
+documentation = "https://docs.rs/opensmtpd-derive/"
+repository = "https://github.com/breard-r/rust-opensmtpd"
+readme = "README.md"
+license = "MIT OR Apache-2.0"
+include = ["src/**/*", "Cargo.toml", "../LICENSE-*.txt"]
+
+[lib]
+proc-macro = true
+
+[dependencies]
+proc-macro2 = "1.0"
+quote = "1.0"
+syn = { version = "1.0", features = ["full", "extra-traits"] }

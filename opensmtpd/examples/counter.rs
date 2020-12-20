@@ -1,5 +1,6 @@
 use log;
-use opensmtpd::{register, run_filter, Address, Filter, ReportEntry};
+use opensmtpd::{run_filter, Address, Filter, ReportEntry};
+use opensmtpd_derive::register;
 use simplelog::{Config, LevelFilter, WriteLogger};
 use std::fs::File;
 
@@ -12,7 +13,7 @@ struct MyCounter {
 }
 
 impl Filter for MyCounter {
-    register!(has_report_link_connect);
+    #[register]
     fn on_report_link_connect(
         &mut self,
         _entry: &ReportEntry,
@@ -30,7 +31,7 @@ impl Filter for MyCounter {
         );
     }
 
-    register!(has_report_link_disconnect);
+    #[register]
     fn on_report_link_disconnect(&mut self, _entry: &ReportEntry) {
         self.nb_connected -= 1;
         log::info!(

@@ -22,14 +22,15 @@
 //! disconnects.
 //!
 //! ```
-//! use opensmtpd::{register, run_filter, Filter, ReportEntry};
+//! use opensmtpd::{run_filter, Filter, ReportEntry};
+//! use opensmtpd_derive::register;
 //!
 //! struct MyCounter {
 //!     nb: u64,
 //! }
 //!
 //! impl Filter for MyCounter {
-//!     register!(has_report_link_disconnect);
+//!     #[register]
 //!     fn on_report_link_disconnect(&mut self, _entry: &ReportEntry) {
 //!         self.nb + 1;
 //!     }
@@ -71,15 +72,6 @@ use std::sync::mpsc::channel;
 use std::thread;
 
 const BUFFER_SIZE: usize = 4096;
-
-#[macro_export]
-macro_rules! register {
-    ($name: ident) => {
-        fn $name(&self) -> bool {
-            return true;
-        }
-    };
-}
 
 macro_rules! recv {
     ($rx: ident) => {
@@ -127,7 +119,12 @@ macro_rules! handshake_register {
     ($obj: ident, $func: ident, $subsystem: expr, $type: expr, $name: expr) => {
         if $obj.$func() {
             println!("register|{}|{}|{}", $type, $subsystem.to_string(), $name);
-            log::trace!("{} {} for {} registered", $type, $name, $subsystem.to_string());
+            log::trace!(
+                "{} {} for {} registered",
+                $type,
+                $name,
+                $subsystem.to_string()
+            );
         }
     };
 }

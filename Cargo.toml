@@ -1,24 +1,5 @@
-[package]
-name = "opensmtpd"
-version = "0.3.0"
-authors = ["Rodolphe Bréard <rodolphe@what.tf>"]
-edition = "2018"
-description = "Interface for OpenSMTPD filters"
-keywords = ["opensmtpd", "filter", "mail"]
-documentation = "https://docs.rs/opensmtpd/"
-repository = "https://github.com/breard-r/rust-opensmtpd"
-readme = "README.md"
-license = "MIT OR Apache-2.0"
-include = ["src/**/*", "Cargo.toml", "LICENSE-*.txt"]
-
-[dependencies]
-log = "0.4"
-nom = "6.0"
-pretty-hex = "0.2"
-
-[dev-dependencies]
-simplelog = "0.9"
-
-[[example]]
-name = "counter"
-path = "examples/counter.rs"
+[workspace]
+members = [
+    "opensmtpd",
+    "opensmtpd-derive"
+]
