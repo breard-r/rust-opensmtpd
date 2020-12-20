@@ -1,3 +1,4 @@
+use crate::error::get_pretty_hex;
 use std::io::{self, ErrorKind, Read};
 use std::sync::mpsc::Sender;
 
@@ -34,7 +35,7 @@ fn do_read_stdin(tx: &Sender<Vec<u8>>) -> Result<(), String> {
                     let pos = id + 1;
                     let mut line = Vec::with_capacity(pos);
                     line.extend_from_slice(&line_buffer[..pos]);
-                    log::trace!("new line: {:?}", &line);
+                    log::trace!("new line:{}", get_pretty_hex(&line));
                     tx.send(line).unwrap();
                     line_buffer.drain(..pos);
                 }

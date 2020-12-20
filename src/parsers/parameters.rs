@@ -339,12 +339,7 @@ mod tests {
 
     #[test]
     fn test_invalid_parse_filter_auth() {
-        let test_vectors = vec![
-            "|\n",
-            "|\r\n",
-            "|derp",
-            "|derp|derpson\n",
-        ];
+        let test_vectors = vec!["|\n", "|\r\n", "|derp", "|derp|derpson\n"];
         for test in test_vectors {
             let res = parse_filter_auth(test.as_bytes());
             assert!(!res.is_ok());

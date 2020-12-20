@@ -1,3 +1,4 @@
+use crate::error::nom_err_to_string;
 use crate::parsers::entry::{parse_entry, EntryOption};
 use crate::parsers::parameters::{
     parse_filter_auth, parse_filter_connect, parse_filter_data_line, parse_filter_ehlo,
@@ -147,7 +148,7 @@ pub(crate) fn line<T>(user_object: &mut T, input: &[u8]) -> Result<(), String>
 where
     T: Filter,
 {
-    let (input, entry) = parse_entry(input).map_err(|e| e.to_string())?;
+    let (input, entry) = parse_entry(input).map_err(nom_err_to_string)?;
     match entry {
         EntryOption::Report(r) => handle_reports!(user_object, r, input),
         EntryOption::Filter(f) => {

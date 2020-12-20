@@ -45,6 +45,7 @@
 
 mod data_line;
 mod data_structures;
+mod error;
 mod filter;
 mod io;
 mod parsers;
