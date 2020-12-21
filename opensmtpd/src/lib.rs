@@ -46,7 +46,7 @@
 //! The last data-line you will receive is a single dot. The last one
 //! you return must also be a single dot.
 //!
-//! # Example
+//! # Examples
 //!
 //! The following filter increments a variable every time a client
 //! disconnects.
@@ -69,6 +69,42 @@
 //! fn main() {
 //!     let mut my_counter = MyCounter { nb: 0, };
 //!     run_filter(&mut my_counter);
+//! }
+//! ```
+//!
+//! The following filter removes the `X-Originating-Ip` header.
+//!
+//! Be careful, this is not production-ready since it does not
+//! support long headers and cannot differentiate a header from
+//! the body's content.
+//!
+//! ``` rust
+//! use opensmtpd::{return_data_line, run_filter, Filter, FilterEntry};
+//! use opensmtpd_derive::register;
+//!
+//! pub const HEADER_NAME: &str = "x-originating-ip:";
+//! pub const HEADER_LEN: usize = 17;
+//!
+//! struct RmXOriginatingIp {}
+//!
+//! impl Filter for RmXOriginatingIp {
+//!     #[register]
+//!     fn on_filter_data_line(&mut self, entry: &FilterEntry, data_line: &[u8]) {
+//!         if data_line.len() >= HEADER_LEN {
+//!             let head_start = data_line[..HEADER_LEN].to_vec();
+//!             if let Ok(s) = String::from_utf8(head_start) {
+//!                 if s.to_lowercase() == HEADER_NAME {
+//!                     return;
+//!                 }
+//!             }
+//!         }
+//!         return_data_line(entry, data_line);
+//!     }
+//! }
+//!
+//! fn main() {
+//!     let mut my_filter = RmXOriginatingIp {};
+//!     run_filter(&mut my_filter);
 //! }
 //! ```
 //!
