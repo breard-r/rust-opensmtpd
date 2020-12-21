@@ -23,3 +23,7 @@ simplelog = "0.9"
 [[example]]
 name = "counter"
 path = "examples/counter.rs"
+
+[[example]]
+name = "rm_x-originating-ip"
+path = "examples/rm_x-originating-ip.rs"
