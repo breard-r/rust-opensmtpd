@@ -16,12 +16,12 @@
 //! The second and last step is to call the [`run_filter`] function
 //! with a mutable reference of your filter object.
 //!
-//! # Examples
+//! # Example
 //!
 //! The following filter increments a variable every time a client
 //! disconnects.
 //!
-//! ```
+//! ``` rust
 //! use opensmtpd::{run_filter, Filter, ReportEntry};
 //! use opensmtpd_derive::register;
 //!
@@ -43,6 +43,28 @@
 //! ```
 //!
 //! More examples can be found in the [examples directory](https://github.com/breard-r/rust-opensmtpd/tree/main/opensmtpd/examples).
+//!
+//! # Documentation about filters
+//!
+//! This documentation is not meant to provide information about the
+//! filters. For that purpose, you should refer to the
+//! `smtpd-filters` man page (`man 7 smtpd-filters`).
+//!
+//! In the case this man page has not been installed with OpenSMTPD
+//! or if you want the latest one available, you can download it from
+//! the OpenSMTPD repository:
+//!
+//! ``` sh
+//! curl -sSf "https://raw.githubusercontent.com/OpenSMTPD/OpenSMTPD/master/usr.sbin/smtpd/smtpd-filters.7" | man -l -
+//! ```
+//!
+//! Alternatively, using zsh, you can use the following variants.
+//! Useful on system where man is unable to read from stdin (yes
+//! BSD, that's you).
+//!
+//! ``` sh
+//! man =(curl -sSf "https://raw.githubusercontent.com/OpenSMTPD/OpenSMTPD/master/usr.sbin/smtpd/smtpd-filters.7")
+//! ```
 
 mod data_line;
 mod data_structures;
