@@ -16,6 +16,36 @@
 //! The second and last step is to call the [`run_filter`] function
 //! with a mutable reference of your filter object.
 //!
+//! ## Reports
+//!
+//! Reports are very simple: the associated functions accepts a
+//! [`ReportEntry`] parameter as well as some optional parameters and
+//! do not return anything. The [`ReportEntry`] parameter contains
+//! all the common information about reports while the other
+//! parameters are specific to each filter.
+//!
+//! ## Filters
+//!
+//! Filters are similar to reports: the associated functions accepts
+//! a [`FilterEntry`] parameter as well as some optional parameters,
+//! but this time they have to return a [`FilterResponse`]. The only
+//! exception is the
+//! [`on_filter_data_line`](Filter::on_filter_data_line) function
+//! that doesn't return anything.
+//!
+//! ## The data-line filter
+//!
+//! This filter is the only one that **does not** return a
+//! [`FilterResponse`]. Instead, you are expected to produce new
+//! lines using the [`return_data_line`] function. This function does
+//! not have to be called each time
+//! [`on_filter_data_line`](Filter::on_filter_data_line) is
+//! triggered: you can store all of the data-lines, edit them and
+//! then call [`return_data_line`] on each.
+//!
+//! The last data-line you will receive is a single dot. The last one
+//! you return must also be a single dot.
+//!
 //! # Example
 //!
 //! The following filter increments a variable every time a client
