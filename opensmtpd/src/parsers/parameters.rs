@@ -4,7 +4,7 @@ use super::{
 };
 use crate::{Address, AuthResult, FilterKind, FilterPhase, MailResult, Method};
 use nom::branch::alt;
-use nom::bytes::streaming::{tag, take_while1};
+use nom::bytes::streaming::{tag, take_while, take_while1};
 use nom::combinator::{map_res, opt};
 use nom::IResult;
 use std::net::SocketAddr;
@@ -34,7 +34,7 @@ pub(crate) fn parse_filter_connect(
 
 pub(crate) fn parse_filter_data_line(input: &[u8]) -> IResult<&[u8], &[u8]> {
     let (input, _) = parse_delimiter(input)?;
-    let (input, s) = take_while1(is_body_char)(input)?;
+    let (input, s) = take_while(is_body_char)(input)?;
     let (input, _) = parse_eol(input)?;
     Ok((input, s))
 }
