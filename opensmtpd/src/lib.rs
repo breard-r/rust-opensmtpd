@@ -186,16 +186,16 @@ where
     T: Filter,
 {
     // Filters
-    handshake_register!(obj, has_filter_auth, ss, "report", "auth");
-    handshake_register!(obj, has_filter_commit, ss, "report", "commit");
-    handshake_register!(obj, has_filter_connect, ss, "report", "connect");
-    handshake_register!(obj, has_filter_data, ss, "report", "data");
-    handshake_register!(obj, has_filter_data_line, ss, "report", "data-line");
-    handshake_register!(obj, has_filter_ehlo, ss, "report", "ehlo");
-    handshake_register!(obj, has_filter_helo, ss, "report", "helo");
-    handshake_register!(obj, has_filter_mail_from, ss, "report", "mail-from");
-    handshake_register!(obj, has_filter_rcpt_to, ss, "report", "rcpt-to");
-    handshake_register!(obj, has_filter_starttls, ss, "report", "starttls");
+    handshake_register!(obj, has_filter_auth, ss, "filter", "auth");
+    handshake_register!(obj, has_filter_commit, ss, "filter", "commit");
+    handshake_register!(obj, has_filter_connect, ss, "filter", "connect");
+    handshake_register!(obj, has_filter_data, ss, "filter", "data");
+    handshake_register!(obj, has_filter_data_line, ss, "filter", "data-line");
+    handshake_register!(obj, has_filter_ehlo, ss, "filter", "ehlo");
+    handshake_register!(obj, has_filter_helo, ss, "filter", "helo");
+    handshake_register!(obj, has_filter_mail_from, ss, "filter", "mail-from");
+    handshake_register!(obj, has_filter_rcpt_to, ss, "filter", "rcpt-to");
+    handshake_register!(obj, has_filter_starttls, ss, "filter", "starttls");
 
     // Reports
     handshake_register!(obj, has_report_link_auth, ss, "report", "link-auth");
