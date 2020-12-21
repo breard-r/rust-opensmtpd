@@ -6,12 +6,12 @@
 //! # Writing a filter for OpenSMTPD
 //!
 //! The first step is to define an object (most of the time you want
-//! a struct) the implements the [`Filter`] trait. All of this
+//! a struct) that implements the [`Filter`] trait. All of this
 //! trait's methods have an empty default implementation, so you only
 //! have to implement the ones that matters to you. For each method
-//! you implement, you must use the [`register`] macro in order to
-//! ask OpenSMTPD to send you the corresponding events and filter
-//! requests.
+//! you implement, you must use the [`opensmtpd_derive::register`]
+//! attribute macro in order to ask OpenSMTPD to send you the
+//! corresponding events and filter requests.
 //!
 //! The second and last step is to call the [`run_filter`] function
 //! with a mutable reference of your filter object.
@@ -42,7 +42,7 @@
 //! }
 //! ```
 //!
-//! More examples can be found in the [examples directory](https://github.com/breard-r/rust-opensmtpd/tree/main/examples).
+//! More examples can be found in the [examples directory](https://github.com/breard-r/rust-opensmtpd/tree/main/opensmtpd/examples).
 
 mod data_line;
 mod data_structures;
