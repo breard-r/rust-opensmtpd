@@ -56,19 +56,19 @@
 //! use opensmtpd_derive::register;
 //!
 //! struct MyCounter {
-//!     nb: u64,
+//!		nb: u64,
 //! }
 //!
 //! impl Filter for MyCounter {
-//!     #[register]
-//!     fn on_report_link_disconnect(&mut self, _entry: &ReportEntry) {
-//!         self.nb + 1;
-//!     }
+//!		#[register]
+//!		fn on_report_link_disconnect(&mut self, _entry: &ReportEntry) {
+//!			self.nb + 1;
+//!		}
 //! }
 //!
 //! fn main() {
-//!     let mut my_counter = MyCounter { nb: 0, };
-//!     run_filter(&mut my_counter);
+//!		let mut my_counter = MyCounter { nb: 0, };
+//!		run_filter(&mut my_counter);
 //! }
 //! ```
 //!
@@ -88,23 +88,23 @@
 //! struct RmXOriginatingIp {}
 //!
 //! impl Filter for RmXOriginatingIp {
-//!     #[register]
-//!     fn on_filter_data_line(&mut self, entry: &FilterEntry, data_line: &[u8]) {
-//!         if data_line.len() >= HEADER_LEN {
-//!             let head_start = data_line[..HEADER_LEN].to_vec();
-//!             if let Ok(s) = String::from_utf8(head_start) {
-//!                 if s.to_lowercase() == HEADER_NAME {
-//!                     return;
-//!                 }
-//!             }
-//!         }
-//!         return_data_line(entry, data_line);
-//!     }
+//!		#[register]
+//!		fn on_filter_data_line(&mut self, entry: &FilterEntry, data_line: &[u8]) {
+//!			if data_line.len() >= HEADER_LEN {
+//!				let head_start = data_line[..HEADER_LEN].to_vec();
+//!				if let Ok(s) = String::from_utf8(head_start) {
+//!					if s.to_lowercase() == HEADER_NAME {
+//!						return;
+//!					}
+//!				}
+//!			}
+//!			return_data_line(entry, data_line);
+//!		}
 //! }
 //!
 //! fn main() {
-//!     let mut my_filter = RmXOriginatingIp {};
-//!     run_filter(&mut my_filter);
+//!		let mut my_filter = RmXOriginatingIp {};
+//!		run_filter(&mut my_filter);
 //! }
 //! ```
 //!

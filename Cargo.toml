@@ -1,5 +1,5 @@
 [workspace]
 members = [
-    "opensmtpd",
-    "opensmtpd-derive"
+	"opensmtpd",
+	"opensmtpd-derive"
 ]

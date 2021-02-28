@@ -109,11 +109,11 @@ mod tests {
 	#[test]
 	fn test_invalid_handshakes() {
 		let test_vectors = vec![
-            "config|smtpd-version|6.6.1\nconfig|smtp-session-timeout|\nconfig|subsystem|smtp-in\nconfig|ready\n",
-            "config|smtp-session-timeout|300\nconfig|smtpd-version|6.6.1\nconfig|subsystem|smtp-in\nconfig|ready\n",
-            "config|smtpd-version|6.6.1\nconfig|smtp-session-timeout|300\nconfig|subsystem|smtp-in\nconfig|ready",
-            "config|smtpd-version|6.6.1\nconfig|smtp-session-timeout|300\nconfig|subsystem|smtp-in\nconfig|ready\r",
-        ];
+			"config|smtpd-version|6.6.1\nconfig|smtp-session-timeout|\nconfig|subsystem|smtp-in\nconfig|ready\n",
+			"config|smtp-session-timeout|300\nconfig|smtpd-version|6.6.1\nconfig|subsystem|smtp-in\nconfig|ready\n",
+			"config|smtpd-version|6.6.1\nconfig|smtp-session-timeout|300\nconfig|subsystem|smtp-in\nconfig|ready",
+			"config|smtpd-version|6.6.1\nconfig|smtp-session-timeout|300\nconfig|subsystem|smtp-in\nconfig|ready\r",
+		];
 		for input in test_vectors {
 			let r = parse_handshake(input.as_bytes());
 			assert!(r.is_err());
