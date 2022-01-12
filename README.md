@@ -17,3 +17,8 @@ Read the documentation on [docs.rs](https://docs.rs/opensmtpd/).
 # Requirements
 
 Rust 1.43 or newer.
+
+
+# Status
+
+Abandoned (at least temporarily).
