@@ -9,6 +9,7 @@ use nom::character::streaming::digit1;
 use nom::combinator::map_res;
 use nom::IResult;
 
+#[derive(Clone, Debug)]
 pub struct ReportEntry {
 	pub version: String,
 	pub timestamp: TimeVal,
@@ -17,6 +18,7 @@ pub struct ReportEntry {
 	pub session_id: String,
 }
 
+#[derive(Clone, Debug)]
 pub struct FilterEntry {
 	pub version: String,
 	pub timestamp: TimeVal,
@@ -26,6 +28,7 @@ pub struct FilterEntry {
 	pub token: String,
 }
 
+#[derive(Clone, Debug)]
 pub(crate) enum EntryOption {
 	Report(ReportEntry),
 	Filter(FilterEntry),

@@ -137,6 +137,7 @@ mod data_structures;
 mod error;
 mod filter;
 mod io;
+pub mod message_aggregator;
 mod parsers;
 mod process;
 
